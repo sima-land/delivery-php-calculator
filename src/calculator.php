@@ -2,6 +2,7 @@
 
 namespace SimaLand\DeliveryCalculator;
 
+use Monolog\Logger;
 use \Psr\Log\LoggerAwareInterface;
 use \Psr\Log\LoggerAwareTrait;
 use \Psr\Log\LogLevel;
@@ -36,9 +37,14 @@ class Calculator implements LoggerAwareInterface
     protected $result;
 
     /**
-     * @var string Последнее сообщение об ошибке
+     * @var []string Массив с сообщениями об ошибках
      */
-    protected $error = "";
+    protected $errors = [];
+
+    /**
+     * @var []string Массив с информацией о промежуточных расчетах
+     */
+    protected $trace = [];
 
     /**
      * Расчитывает стоимость доставки
@@ -56,17 +62,18 @@ class Calculator implements LoggerAwareInterface
     public function calculate(SettlementInterface $settlement, array $items) : bool
     {
         $this->result = 0.0;
-        $this->error = "";
-        $this->log(LogLevel::DEBUG, "Settlement", [
+        $this->errors = [];
+        $this->trace("Settlement", [
             'id' => $settlement->getID(),
             'delivery_price_per_unit_volume' => $settlement->getDeliveryPricePerUnitVolume(),
         ]);
         foreach ($items as $item) {
-            if ($this->addItem($settlement, $item)) {
-                return false;
-            }
+            $this->checkItem($item);
         }
-        return true;
+        if (!$this->errors) {
+            $this->addItem($settlement, $item);
+        }
+        return !(bool)$this->errors;
     }
 
     /**
@@ -76,7 +83,7 @@ class Calculator implements LoggerAwareInterface
      */
     protected function addItem(SettlementInterface $settlement, ItemInterface $item) : bool
     {
-        $this->log(LogLevel::DEBUG, "Item", [
+        $this->trace("Item", [
             "id" => $item->getID(),
             "is_paid_delivery" => $item->isPaidDelivery(),
             "qty" => $item->getQty(),
@@ -89,9 +96,6 @@ class Calculator implements LoggerAwareInterface
             'box_capacity' => $item->getBoxCapacity(),
             'delivery_discount' => $item->getDeliveryDiscount(),
         ]);
-        if (!$this->isItemValid($item)) {
-            return false;
-        }
         if ($item->isBoxed()) {
             $calculatedVolume = $this->getBoxedVolume(
                 $item->getQty(),
@@ -109,29 +113,27 @@ class Calculator implements LoggerAwareInterface
                 $item->getPackingVolumeFactor()
             );
         }
-        $this->log(LogLevel::DEBUG, "Calculated volume=$calculatedVolume");
 
         $result = $calculatedVolume
             * $settlement->getDeliveryPricePerUnitVolume()
             * (1 - $item->getDeliveryDiscount());
-        $this->log(LogLevel::DEBUG, "Result=$result");
+        $this->trace("Result=$result");
 
         $this->result += $result;
         return true;
     }
 
     /**
-     * Возвращает true если все методы $item возвращают корректные значения
+     * Проверяет все ли методы $item возвращают корректные значения
      *
      * @param ItemInterface $item
-     * @return bool
      */
-    public function isItemValid(ItemInterface $item) : bool {
+    protected function checkItem(ItemInterface $item) {
         if (($tmp = $item->getQty()) <= 0) {
             $this->error("Negative qty=$tmp");
         }
         if (($tmp=$item->getWeight()) <= 0) {
-             $this->error("Negative weight=$tmp");
+            $this->error("Negative weight=$tmp");
         }
         if (($tmp=$item->getPackingVolumeFactor()) < 1) {
             $this->error("PackingVolumeFactor=$tmp, must be equal or greater than one");
@@ -151,7 +153,6 @@ class Calculator implements LoggerAwareInterface
                 $this->error("ProductVolume=$tmp, must be positive");
             }
         }
-        return $this->getError() === "";
     }
 
     /**
@@ -174,14 +175,13 @@ class Calculator implements LoggerAwareInterface
         $volume = $productVolume * $packingVolumeFactor;
         $totalVolume = $volume * $qty;
         if ($totalVolume > self::ITEM_VOLUME_LIMIT) {
-            throw new Exception(sprintf("Total volume %f exceeds limit %f", $totalVolume, self::ITEM_VOLUME_LIMIT));
+            $this->error("Total volume $totalVolume exceeds volume limit");
         }
-
         return $this->getDensityCorrectedVolume($weight * $qty, $totalVolume);
     }
 
     /**
-     * Возвращает расчетный объем исходя для вкладываемого товара
+     * Возвращает расчетный объем для вкладываемого товара
      *
      * @param float $weight
      * @param float $qty
@@ -220,12 +220,11 @@ class Calculator implements LoggerAwareInterface
         $density = $weight / $volume;
         if ($density <= self::ITEM_DENSITY_LIMIT) {
             $result = $volume / 1000;
-            $this->log(LogLevel::DEBUG, "Low density=$density, volume=$result");
+            $this->trace("Low density=$density, volume=$result");
         } else {
             $result = $weight / (self::ITEM_DENSITY_LIMIT * 1000);
-            $this->log(LogLevel::DEBUG, "High density=$density, volume=$result");
+            $this->trace("High density=$density, volume=$result");
         }
-
         return $result;
     }
 
@@ -239,36 +238,35 @@ class Calculator implements LoggerAwareInterface
     }
 
     /**
-     * Возвращает сообщение об ошибке
-     * @return string
+     * Возвращает массив сообщений об ошибках
+     * @return string[]
      */
-    public function getError() : string {
-        return $this->error;
+    public function getErrors() : array {
+        return $this->errors;
     }
 
     /**
-     * Запоминает последнее сообщение об ошибке, также отправляя его в лог
+     * Добавляет сообщение об ошибке, также отправляя его в лог
      * @param $message
      */
     protected function error($message) {
-        $this->error = $message;
-        $this->log(LogLevel::ERROR, $message);
+        $this->errors[] = $message;
+        if (!is_null($this->logger)) {
+            $this->logger->log(LogLevel::ERROR, $message);
+        }
     }
 
     /**
      * Отправляет сообщение в логгер если он установлен
      *
-     * @param $level
      * @param $message
      * @param array $context
      */
-    protected function log($level, $message, array $context = [])
+    protected function trace($message, array $context = [])
     {
+        $this->trace[] = [$message, $context];
         if (!is_null($this->logger)) {
-            $this->logger->log($level, $message, $context);
+            $this->logger->log(LogLevel::INFO, $message, $context);
         }
     }
 }
-
-
-

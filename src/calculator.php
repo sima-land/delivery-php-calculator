@@ -25,7 +25,7 @@ class Calculator implements LoggerAwareInterface
 {
     use LoggerAwareTrait;
 
-    // Ограничение на объем одной тоарной позиции
+    // Ограничение на объем одной товарной позиции
     const ITEM_VOLUME_LIMIT = 5000;
 
     // Граница плотности, делит товары на товары с высокой и низкой плотностью

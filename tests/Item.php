@@ -1,14 +1,14 @@
 <?php
 
-namespace SimaLand\DeliveryCalculator\Tests;
+namespace SimaLand\DeliveryCalculator\tests;
 
-use \SimaLand\DeliveryCalculator\ItemInterface;
+use SimaLand\DeliveryCalculator\ItemInterface;
 
 class Item implements ItemInterface
 {
     protected $params = [];
 
-    function __construct(array $params)
+    public function __construct(array $params)
     {
         $this->params = $params;
     }
@@ -18,6 +18,7 @@ class Item implements ItemInterface
         if (array_key_exists('id', $this->params)) {
             return $this->params['id'];
         }
+
         return 0;
     }
 
@@ -26,6 +27,7 @@ class Item implements ItemInterface
         if (array_key_exists('is_paid_delivery', $this->params)) {
             return $this->params['is_paid_delivery'];
         }
+
         return false;
     }
 
@@ -34,6 +36,7 @@ class Item implements ItemInterface
         if (array_key_exists('qty', $this->params)) {
             return $this->params['qty'];
         }
+
         return 0;
     }
 
@@ -42,6 +45,7 @@ class Item implements ItemInterface
         if (array_key_exists('weight', $this->params)) {
             return $this->params['weight'];
         }
+
         return 0.0;
     }
 
@@ -50,6 +54,7 @@ class Item implements ItemInterface
         if (array_key_exists('product_volume', $this->params)) {
             return $this->params['product_volume'];
         }
+
         return 0.0;
     }
 
@@ -58,14 +63,16 @@ class Item implements ItemInterface
         if (array_key_exists('package_volume', $this->params)) {
             return $this->params['package_volume'];
         }
+
         return 0.0;
     }
 
     public function getPackingVolumeFactor() : float
     {
         if (array_key_exists('packing_volume_factor', $this->params)) {
-            return (float)$this->params['packing_volume_factor'];
+            return (float) $this->params['packing_volume_factor'];
         }
+
         return 1.0;
     }
 
@@ -74,6 +81,7 @@ class Item implements ItemInterface
         if (array_key_exists('is_boxed', $this->params)) {
             return $this->params['is_boxed'];
         }
+
         return false;
     }
 
@@ -82,6 +90,7 @@ class Item implements ItemInterface
         if (array_key_exists('box_volume', $this->params)) {
             return $this->params['box_volume'];
         }
+
         return 0.0;
     }
 
@@ -90,6 +99,7 @@ class Item implements ItemInterface
         if (array_key_exists('box_capacity', $this->params)) {
             return $this->params['box_capacity'];
         }
+
         return 0;
     }
 
@@ -98,6 +108,7 @@ class Item implements ItemInterface
         if (array_key_exists('delivery_discount', $this->params)) {
             return $this->params['delivery_discount'];
         }
+
         return 0.0;
     }
 }

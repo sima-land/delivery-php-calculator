@@ -1,12 +1,12 @@
 <?php
 
-namespace SimaLand\DeliveryCalculator\Tests;
+namespace SimaLand\DeliveryCalculator\tests;
 
 /**
  * Created by PhpStorm.
  * User: pahanini
  * Date: 15/11/2016
- * Time: 19:00
+ * Time: 19:00.
  */
 class Settlement implements \SimaLand\DeliveryCalculator\SettlementInterface
 {
@@ -22,6 +22,7 @@ class Settlement implements \SimaLand\DeliveryCalculator\SettlementInterface
         if (array_key_exists('id', $this->params)) {
             return $this->params['id'];
         }
+
         return 0;
     }
 
@@ -30,7 +31,7 @@ class Settlement implements \SimaLand\DeliveryCalculator\SettlementInterface
         if (array_key_exists('delivery_price_per_unit_volume', $this->params)) {
             return $this->params['delivery_price_per_unit_volume'];
         }
+
         return 0.0;
     }
 }
-

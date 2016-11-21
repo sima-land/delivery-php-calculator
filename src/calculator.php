@@ -1,14 +1,15 @@
-<?php declare(strict_types = 1);
+<?php
+
+declare(strict_types=1);
 
 namespace SimaLand\DeliveryCalculator;
 
-use Monolog\Logger;
-use \Psr\Log\LoggerAwareInterface;
-use \Psr\Log\LoggerAwareTrait;
-use \Psr\Log\LogLevel;
+use Psr\Log\LoggerAwareInterface;
+use Psr\Log\LoggerAwareTrait;
+use Psr\Log\LogLevel;
 
 /**
- * Кальулятор платной доставки OOO Сима-ленд
+ * Кальулятор платной доставки OOO Сима-ленд.
  *
  * Пример использвания:
  *
@@ -16,12 +17,10 @@ use \Psr\Log\LogLevel;
  * if ($calc->calculate($settlement, $items)) {
  *    echo "Стоимость доставки " . $calc->getResult()
  * } else {
- *    echo "Ошибка при расчете: " . $calc->getError();
+ *    echo "Ошибка при расчете: " . $calc->getErrors();
  * }
- *
- * @package SimaLand\DeliveryCalculator
  */
-class Calculator implements LoggerAwareInterface
+class calculator implements LoggerAwareInterface
 {
     use LoggerAwareTrait;
 
@@ -47,7 +46,7 @@ class Calculator implements LoggerAwareInterface
     protected $trace = [];
 
     /**
-     * Расчитывает стоимость доставки
+     * Расчитывает стоимость доставки.
      *
      * Функция возвращает true если расчет доставки завершился без ошибок. Результат расчета
      * можно получить функцией  getResult()
@@ -57,13 +56,14 @@ class Calculator implements LoggerAwareInterface
      *
      * @param \SimaLand\DeliveryCalculator\SettlementInterface
      * @param []\SimaLand\DeliveryCalculator\ItemInterface
+     *
      * @return bool
      */
     public function calculate(SettlementInterface $settlement, array $items) : bool
     {
         $this->result = 0.0;
         $this->errors = [];
-        $this->trace("Settlement", [
+        $this->trace('Settlement', [
             'id' => $settlement->getID(),
             'delivery_price_per_unit_volume' => $settlement->getDeliveryPricePerUnitVolume(),
         ]);
@@ -73,20 +73,22 @@ class Calculator implements LoggerAwareInterface
         if (!$this->errors) {
             $this->addItem($settlement, $item);
         }
-        return !(bool)$this->errors;
+
+        return !(bool) $this->errors;
     }
 
     /**
      * @param SettlementInterface $settlement
-     * @param ItemInterface $item
+     * @param ItemInterface       $item
+     *
      * @return bool
      */
     protected function addItem(SettlementInterface $settlement, ItemInterface $item) : bool
     {
-        $this->trace("Item", [
-            "id" => $item->getID(),
-            "is_paid_delivery" => $item->isPaidDelivery(),
-            "qty" => $item->getQty(),
+        $this->trace('Item', [
+            'id' => $item->getID(),
+            'is_paid_delivery' => $item->isPaidDelivery(),
+            'qty' => $item->getQty(),
             'weight' => $item->getWeight(),
             'productVolume' => $item->getProductVolume(),
             'packageVolume' => $item->getPackageVolume(),
@@ -120,22 +122,24 @@ class Calculator implements LoggerAwareInterface
         $this->trace("Result=$result");
 
         $this->result += $result;
+
         return true;
     }
 
     /**
-     * Проверяет все ли методы $item возвращают корректные значения
+     * Проверяет все ли методы $item возвращают корректные значения.
      *
      * @param ItemInterface $item
      */
-    protected function checkItem(ItemInterface $item) {
+    protected function checkItem(ItemInterface $item)
+    {
         if (($tmp = $item->getQty()) <= 0) {
             $this->error("Negative qty=$tmp");
         }
-        if (($tmp=$item->getWeight()) <= 0) {
+        if (($tmp = $item->getWeight()) <= 0) {
             $this->error("Negative weight=$tmp");
         }
-        if (($tmp=$item->getPackingVolumeFactor()) < 1) {
+        if (($tmp = $item->getPackingVolumeFactor()) < 1) {
             $this->error("PackingVolumeFactor=$tmp, must be equal or greater than one");
         }
         if ($item->isBoxed()) {
@@ -156,13 +160,15 @@ class Calculator implements LoggerAwareInterface
     }
 
     /**
-     * Возвращает расчетный объем для обычного товара
+     * Возвращает расчетный объем для обычного товара.
      *
      * @param float $productVolume
      * @param float $packingVolumeFactor
-     * @param int $qty
+     * @param int   $qty
      * @param float $weight
+     *
      * @return float
+     *
      * @throws Exception
      */
     protected function getRegularVolume(
@@ -170,25 +176,26 @@ class Calculator implements LoggerAwareInterface
         float $weight,
         float $productVolume,
         float $packingVolumeFactor
-    ) : float
-    {
+    ) : float {
         $volume = $productVolume * $packingVolumeFactor;
         $totalVolume = $volume * $qty;
         if ($totalVolume > self::ITEM_VOLUME_LIMIT) {
             $this->error("Total volume $totalVolume exceeds volume limit");
         }
+
         return $this->getDensityCorrectedVolume($weight * $qty, $totalVolume);
     }
 
     /**
-     * Возвращает расчетный объем для вкладываемого товара
+     * Возвращает расчетный объем для вкладываемого товара.
      *
      * @param float $weight
      * @param float $qty
      * @param float $packageVolume
      * @param float $boxVolume
-     * @param int $boxCapacity
+     * @param int   $boxCapacity
      * @param float $packingVolumeFactor
+     *
      * @return float
      */
     protected function getBoxedVolume(
@@ -198,21 +205,22 @@ class Calculator implements LoggerAwareInterface
         float $boxVolume,
         int $boxCapacity,
         float $packingVolumeFactor
-    ) : float
-    {
+    ) : float {
         if ($qty > 1 && $boxCapacity > 1) {
             $volume = ($qty - 1) * ($boxVolume - $packageVolume) / ($boxCapacity - 1) + $packageVolume;
         } else {
             $volume = $packageVolume;
         }
+
         return $this->getDensityCorrectedVolume($weight * $qty, $volume * $packingVolumeFactor);
     }
 
     /**
-     * Возвращает расчетный объем скорректированный с учетом плотности
+     * Возвращает расчетный объем скорректированный с учетом плотности.
      *
      * @param $weight
      * @param $volume
+     *
      * @return float
      */
     protected function getDensityCorrectedVolume($weight, $volume) : float
@@ -225,31 +233,39 @@ class Calculator implements LoggerAwareInterface
             $result = $weight / (self::ITEM_DENSITY_LIMIT * 1000);
             $this->trace("High density=$density, volume=$result");
         }
+
         return $result;
     }
 
     /**
-     * Возвращает результат расчета
+     * Возвращает результат расчета.
+     *
      * @param int $precision Количество знаков после запятой
+     *
      * @return float Результат расчета
      */
-    public function getResult($precision = 2) {
+    public function getResult($precision = 2)
+    {
         return round($this->result, $precision);
     }
 
     /**
-     * Возвращает массив сообщений об ошибках
+     * Возвращает массив сообщений об ошибках.
+     *
      * @return string[]
      */
-    public function getErrors() : array {
+    public function getErrors() : array
+    {
         return $this->errors;
     }
 
     /**
-     * Добавляет сообщение об ошибке, также отправляя его в лог
+     * Добавляет сообщение об ошибке, также отправляя его в лог.
+     *
      * @param $message
      */
-    protected function error($message) {
+    protected function error($message)
+    {
         $this->errors[] = $message;
         if (!is_null($this->logger)) {
             $this->logger->log(LogLevel::ERROR, $message);
@@ -257,7 +273,7 @@ class Calculator implements LoggerAwareInterface
     }
 
     /**
-     * Отправляет сообщение в логгер если он установлен
+     * Отправляет сообщение в логгер если он установлен.
      *
      * @param $message
      * @param array $context

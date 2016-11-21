@@ -3,7 +3,7 @@
 namespace SimaLand\DeliveryCalculator;
 
 /**
- * Interface ItemInterface
+ * Interface ItemInterface.
  */
 interface ItemInterface
 {
@@ -11,7 +11,6 @@ interface ItemInterface
      * @return int ID товра (нужен для лога)
      */
     public function getID() : int;
-
 
     /**
      * @return bool Является ли доставка товара платной?
@@ -31,7 +30,7 @@ interface ItemInterface
     public function getWeight() : float;
 
     /**
-     * @return float Объем продукта.
+     * @return float Объем продукта
      */
     public function getProductVolume() : float;
 
@@ -43,18 +42,18 @@ interface ItemInterface
     public function getPackageVolume() : float;
 
     /**
-     * Возвращает коэффициент упаковки (объема)
+     * Возвращает коэффициент упаковки (объема).
      *
      * Данные для конкретного товара можно получить по API
      * https://www.sima-land.ru/api/v3/help/#Товар поле packing_volume_factor
      * если у товара данное поле не задан то принимаем его равным 1
      *
-     * @return float Коэффициент упаковки (объема).
+     * @return float Коэффициент упаковки (объема)
      */
     public function getPackingVolumeFactor() : float;
 
     /**
-     * Возвращает признак вместимости
+     * Возвращает признак вместимости.
      *
      * todo: Очень непонятное название, по сути это значи может ли товар быть вложен один в другой?
      *

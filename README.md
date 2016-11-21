@@ -20,7 +20,7 @@ $calc = new Calculator()
 if ($calc->calculate($settlement, $items)) {
     echo "Стоимость доставки " . $calc->getResult()
 } else {
-    echo "Ошибка при расчете: " . $calc->getError();
+    echo "Ошибка при расчете: " . $calc->getErrors();
 }
 
 ```

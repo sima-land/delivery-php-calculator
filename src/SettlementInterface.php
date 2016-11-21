@@ -3,12 +3,12 @@
 namespace SimaLand\DeliveryCalculator;
 
 /**
- * Interface SettlementInterface
+ * Interface SettlementInterface.
  *
  * https://www.sima-land.ru/api/v3/help/#Города-доставки
  */
-interface SettlementInterface {
-
+interface SettlementInterface
+{
     /**
      * @return int Идентификатор openstreetmap.org
      */
@@ -19,5 +19,3 @@ interface SettlementInterface {
      */
     public function getDeliveryPricePerUnitVolume() : float;
 }
-
-

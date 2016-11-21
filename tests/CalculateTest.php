@@ -1,5 +1,6 @@
 <?php
-namespace SimaLand\DeliveryCalculator\Tests;
+
+namespace SimaLand\DeliveryCalculator\tests;
 
 use PHPUnit\Framework\TestCase;
 use SimaLand\DeliveryCalculator\Calculator;
@@ -7,7 +8,7 @@ use Monolog\Handler\StreamHandler;
 use Monolog\Logger;
 use pahanini\Monolog\Formatter\CliFormatter;
 
-class ItemListTest extends TestCase
+class CalculateTest extends TestCase
 {
     public function testCalc()
     {
@@ -25,7 +26,7 @@ class ItemListTest extends TestCase
             'delivery_price_per_unit_volume' => 1545.61,
         ]);
 
-        $info = "Regular, low density item";
+        $info = 'Regular, low density item';
         $logger->info($info);
         $item = new Item([
             'id' => 1,
@@ -41,7 +42,7 @@ class ItemListTest extends TestCase
         $this->assertTrue($calc->calculate($settlement, [$item]), $info);
         $this->assertSame(235.48, $calc->getResult(), $info);
 
-        $info = "Regular, high density item";
+        $info = 'Regular, high density item';
         $logger->info($info);
         $item = new Item([
             'id' => 2,
@@ -57,7 +58,7 @@ class ItemListTest extends TestCase
         $this->assertTrue($calc->calculate($settlement, [$item]), $info);
         $this->assertSame(192.30, $calc->getResult(), $info);
 
-        $info = "Boxed, low density item";
+        $info = 'Boxed, low density item';
         $logger->info($info);
         $item = new Item([
             'id' => 3,
@@ -75,7 +76,7 @@ class ItemListTest extends TestCase
         $this->assertTrue($calc->calculate($settlement, [$item]), $info);
         $this->assertSame(235.48, $calc->getResult(), $info);
 
-        $info = "Boxed, low density item";
+        $info = 'Boxed, low density item';
         $logger->info($info);
         $item = new Item([
             'id' => 4,
@@ -93,7 +94,7 @@ class ItemListTest extends TestCase
         $this->assertTrue($calc->calculate($settlement, [$item]), $info);
         $this->assertSame(1706.35, $calc->getResult(), $info);
 
-        $info = "Boxed, very low density item";
+        $info = 'Boxed, very low density item';
         $logger->info($info);
         $item = new Item([
             'id' => 10,
@@ -111,7 +112,7 @@ class ItemListTest extends TestCase
         $this->assertTrue($calc->calculate($settlement, [$item]), $info);
         $this->assertSame(1393.67, $calc->getResult(), $info);
 
-        $info = "Boxed, very low density item";
+        $info = 'Boxed, very low density item';
         $logger->info($info);
         $item = new Item([
             'id' => 10,
@@ -129,7 +130,7 @@ class ItemListTest extends TestCase
         $this->assertTrue($calc->calculate($settlement, [$item]), $info);
         $this->assertSame(1393.67, $calc->getResult(), $info);
 
-        $info = "Boxed, very low density item with discount";
+        $info = 'Boxed, very low density item with discount';
         $logger->info($info);
         $item = new Item([
             'id' => 11,
@@ -146,15 +147,10 @@ class ItemListTest extends TestCase
         ]);
         $this->assertTrue($calc->calculate($settlement, [$item]), $info);
         $this->assertSame(1045.26, $calc->getResult(), $info);
-
-
-
-
-
     }
 }
 
-/**
+/*
 <
     <item
         id="5"

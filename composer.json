@@ -1,0 +1,33 @@
+{
+  "name": "sima-land/delivery-calculator",
+  "type": "library",
+  "description": "Delivery calculator for sima-land.ru",
+  "keywords": ["simaland", "delivery", "calculator"],
+  "homepage": "https://github.com/sima-land/delivery-php-calculator",
+  "license": "BSD-3",
+  "authors": [
+    {
+      "name": "Pavel Tetyaev",
+      "email": "pahanini@gmail.com"
+    }
+  ],
+  "require": {
+    "php": ">=7.0",
+    "monolog/monolog": "~1"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "~5",
+    "scrutinizer/ocular": "~1",
+    "pahanini/monolog-cli-formatter" : "~1"
+  },
+  "autoload": {
+    "psr-4": {
+      "SimaLand\\DeliveryCalculator\\": "src"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "SimaLand\\DeliveryCalculator\\Tests\\": "tests"
+    }
+  }
+}

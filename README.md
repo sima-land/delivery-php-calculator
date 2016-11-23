@@ -1,5 +1,10 @@
 # Расчет стоимости доставки sima-land.ru
 
+
+[![StyleCI](https://styleci.io/repos/73701387/shield?branch=master)](https://styleci.io/repos/73701387)
+
+
+
 Основным способом расчета стоимость доставки является использование API
 https://www.sima-land.ru/api/v3/help/#Стоимость-доставки
 
@@ -22,10 +27,4 @@ if ($calc->calculate($settlement, $items)) {
 } else {
     echo "Ошибка при расчете: " . $calc->getErrors();
 }
-
 ```
-
-
-
-
-

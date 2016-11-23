@@ -45,7 +45,7 @@ class CalculateTest extends TestCase
         $info = 'Regular, high density item';
         $logger->info($info);
         $item = new Item([
-            'id' => 2,
+            'id' => 1,
             'weight' => 200.0,
             'qty' => 69,
             'is_paid_delivery' => true,
@@ -61,7 +61,7 @@ class CalculateTest extends TestCase
         $info = 'Boxed, low density item';
         $logger->info($info);
         $item = new Item([
-            'id' => 3,
+            'id' => 1,
             'weight' => 690.0,
             'qty' => 69,
             'is_paid_delivery' => true,
@@ -79,7 +79,7 @@ class CalculateTest extends TestCase
         $info = 'Boxed, low density item';
         $logger->info($info);
         $item = new Item([
-            'id' => 4,
+            'id' => 1,
             'weight' => 690.0,
             'qty' => 500,
             'is_paid_delivery' => true,
@@ -97,7 +97,7 @@ class CalculateTest extends TestCase
         $info = 'Boxed, very low density item';
         $logger->info($info);
         $item = new Item([
-            'id' => 10,
+            'id' => 1,
             'weight' => 250.0,
             'qty' => 500,
             'is_paid_delivery' => true,
@@ -115,7 +115,7 @@ class CalculateTest extends TestCase
         $info = 'Boxed, very low density item';
         $logger->info($info);
         $item = new Item([
-            'id' => 10,
+            'id' => 1,
             'weight' => 250.0,
             'qty' => 500,
             'is_paid_delivery' => true,
@@ -133,7 +133,7 @@ class CalculateTest extends TestCase
         $info = 'Boxed, very low density item with discount';
         $logger->info($info);
         $item = new Item([
-            'id' => 11,
+            'id' => 1,
             'weight' => 250.0,
             'qty' => 500,
             'is_paid_delivery' => true,
@@ -147,107 +147,90 @@ class CalculateTest extends TestCase
         ]);
         $this->assertTrue($calc->calculate($settlement, [$item]), $info);
         $this->assertSame(1045.26, $calc->getResult(), $info);
+
+        $info = 'Volume out of limits';
+        $logger->info($info);
+        $item = new Item([
+            'id' => 1,
+            'weight' => 690.0,
+            'qty' => 20000,
+            'is_paid_delivery' => true,
+            'product_volume' => 2.049,
+            'package_volume' => 0.759,
+            'packing_volume_factor' => 1.1,
+            'is_boxed' => false,
+            'box_volume' => 0.0,
+            'box_capacity' => 0,
+            'delivery_discount' => 0.2,
+        ]);
+        $this->assertFalse($calc->calculate($settlement, [$item]), $info);
+
+        $info = 'Zero qty';
+        $logger->info($info);
+        $item = new Item([
+            'id' => 1,
+            'weight' => 690.0,
+            'qty' => 0,
+            'is_paid_delivery' => true,
+            'product_volume' => 2.049,
+            'package_volume' => 0.759,
+            'packing_volume_factor' => 1.1,
+            'is_boxed' => false,
+            'box_volume' => 0.0,
+            'box_capacity' => 0,
+            'delivery_discount' => 0.2,
+        ]);
+        $this->assertFalse($calc->calculate($settlement, [$item]), $info);
+
+        $info = 'Zero weight';
+        $logger->info($info);
+        $item = new Item([
+            'id' => 1,
+            'weight' => 0.0,
+            'qty' => 1,
+            'is_paid_delivery' => true,
+            'product_volume' => 2.049,
+            'package_volume' => 0.759,
+            'packing_volume_factor' => 1.1,
+            'is_boxed' => false,
+            'box_volume' => 0.0,
+            'box_capacity' => 0,
+            'delivery_discount' => 0.2,
+        ]);
+        $this->assertFalse($calc->calculate($settlement, [$item]), $info);
+
+        $info = 'Zero box capacity';
+        $logger->info($info);
+        $item = new Item([
+            'id' => 1,
+            'weight' => 12.0,
+            'qty' => 1,
+            'is_paid_delivery' => true,
+            'product_volume' => 2.049,
+            'package_volume' => 0.759,
+            'packing_volume_factor' => 1.1,
+            'is_boxed' => true,
+            'box_volume' => 1.0,
+            'box_capacity' => 0,
+            'delivery_discount' => 0.2,
+        ]);
+        $this->assertFalse($calc->calculate($settlement, [$item]), $info);
+
+        $info = 'Zero product volume';
+        $logger->info($info);
+        $item = new Item([
+            'id' => 1,
+            'weight' => 12.0,
+            'qty' => 1,
+            'is_paid_delivery' => true,
+            'product_volume' => -1.0,
+            'package_volume' => 0.759,
+            'packing_volume_factor' => 1.1,
+            'is_boxed' => false,
+            'box_volume' => 1.0,
+            'box_capacity' => 2,
+            'delivery_discount' => 0.2,
+        ]);
+        $this->assertFalse($calc->calculate($settlement, [$item]), $info);
     }
 }
-
-/*
-<
-    <item
-        id="5"
-        name="превышен лимит на максимальный объем товарной позиции"
-        weight="690"
-        qty="20000"
-        is_paid_delivery="1"
-        product_volume="2.049"
-        package_volume="0.759"
-        packing_volume_factor="1.1"
-        is_boxed="0"
-        box_volume=""
-        box_capacity=""
-        delivery_discount="0.2" />
-    <item
-        id="6"
-        name="кол-во ноль"
-        weight="690"
-        qty="0"
-        is_paid_delivery="1"
-        product_volume="2.049"
-        package_volume="0.759"
-        packing_volume_factor="1.1"
-        is_boxed="0"
-        box_volume=""
-        box_capacity=""
-        delivery_discount="0.2" />
-    <item
-        id="7"
-        name="вес ноль"
-        weight=""
-        qty="1"
-        is_paid_delivery="1"
-        product_volume="2.049"
-        package_volume="0.759"
-        packing_volume_factor="1.1"
-        is_boxed="0"
-        box_volume=""
-        box_capacity=""
-        delivery_discount="0.2" />
-    <item
-        id="8"
-        name="нет box_capacity"
-        weight="12"
-        qty="1"
-        is_paid_delivery="1"
-        product_volume="2.049"
-        package_volume="0.759"
-        packing_volume_factor="1.1"
-        is_boxed="1"
-        box_volume=""
-        box_capacity=""
-        delivery_discount="0.2" />
-    <item
-        id="9"
-        name="нет product_volume"
-        weight="12"
-        qty="1"
-        is_paid_delivery="1"
-        product_volume="0"
-        package_volume="0.759"
-        packing_volume_factor="1.1"
-        is_boxed="0"
-        box_volume=""
-        box_capacity=""
-        delivery_discount="0.2" />
-    <item
-        id="10"
-        name="боксовый товар очень низкой плотости"
-        weight="250"
-        qty="500"
-        is_paid_delivery="1"
-        product_volume="2.049"
-        package_volume="2.049"
-        packing_volume_factor="1.1"
-        is_boxed="1"
-        box_volume="40.986"
-        box_capacity="20"
-        delivery_discount="0.2" />
-
-
-
-    <settlement
-        id="1"
-        name="Просто город"
-        delivery_price_per_unit_volume="1545.61"/>
-    <settlement
-        id="27503892"
-        name="Екатеринбург"
-        delivery_price_per_unit_volume="123"/>
-    <settlement
-        id="2"
-        name="Некорректный город"
-        delivery_price_per_unit_volume=""/>
-    <settlement
-        id="1686293227"
-        name="Москва"
-        delivery_price_per_unit_volume="123"/>
-</dataset>
-*/

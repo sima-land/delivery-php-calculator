@@ -134,27 +134,27 @@ class calculator implements LoggerAwareInterface
     protected function checkItem(ItemInterface $item)
     {
         if (($tmp = $item->getQty()) <= 0) {
-            $this->error("Negative qty=$tmp");
+            $this->error("Qty must be positive, qty=$tmp");
         }
         if (($tmp = $item->getWeight()) <= 0) {
-            $this->error("Negative weight=$tmp");
+            $this->error("Weight must be positive, weight=$tmp");
         }
         if (($tmp = $item->getPackingVolumeFactor()) < 1) {
             $this->error("PackingVolumeFactor=$tmp, must be equal or greater than one");
         }
         if ($item->isBoxed()) {
             if (($tmp = $item->getPackageVolume()) <= 0) {
-                $this->error("PackageVolume=$tmp, must be positive");
+                $this->error("PackageVolume must be positive, package_volume=$tmp, ");
             }
             if (($tmp = $item->getBoxVolume()) <= 0) {
-                $this->error("BoxVolume=$tmp, must be positive");
+                $this->error("BoxVolume must be positive, box_volume=$tmp, ");
             }
             if (($tmp = $item->getBoxCapacity()) <= 0) {
-                $this->error("BoxCapacity=$tmp, must be positive");
+                $this->error("BoxCapacity must be positive, box_capacity=$tmp,");
             }
         } else {
             if (($tmp = $item->getProductVolume()) <= 0) {
-                $this->error("ProductVolume=$tmp, must be positive");
+                $this->error("ProductVolume must be positive, product_volume=$tmp, ");
             }
         }
     }

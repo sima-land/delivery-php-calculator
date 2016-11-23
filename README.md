@@ -1,8 +1,7 @@
-# Расчет стоимости доставки sima-land.ru
+# Расчет стоимости доставки [www.sima-land.ru](https://www.sima-land.ru)
 
-
+[![Build Status](https://travis-ci.org/sima-land/delivery-php-calculator.svg?branch=master)](https://travis-ci.org/sima-land/delivery-php-calculator)
 [![StyleCI](https://styleci.io/repos/73701387/shield?branch=master)](https://styleci.io/repos/73701387)
-
 
 
 Основным способом расчета стоимость доставки является использование API

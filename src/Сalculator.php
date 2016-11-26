@@ -104,8 +104,7 @@ class calculator implements LoggerAwareInterface
                 $item->getWeight(),
                 $item->getPackageVolume(),
                 $item->getBoxVolume(),
-                $item->getBoxCapacity(),
-                $item->getPackingVolumeFactor()
+                $item->getBoxCapacity()
             );
         } else {
             $calculatedVolume = $this->getRegularVolume(
@@ -194,7 +193,6 @@ class calculator implements LoggerAwareInterface
      * @param float $packageVolume
      * @param float $boxVolume
      * @param int   $boxCapacity
-     * @param float $packingVolumeFactor
      *
      * @return float
      */
@@ -203,8 +201,7 @@ class calculator implements LoggerAwareInterface
         float $weight,
         float $packageVolume,
         float $boxVolume,
-        int $boxCapacity,
-        float $packingVolumeFactor
+        int $boxCapacity
     ) : float {
         if ($qty > 1 && $boxCapacity > 1) {
             $volume = ($qty - 1) * ($boxVolume - $packageVolume) / ($boxCapacity - 1) + $packageVolume;
@@ -212,7 +209,7 @@ class calculator implements LoggerAwareInterface
             $volume = $packageVolume;
         }
 
-        return $this->getDensityCorrectedVolume($weight * $qty, $volume * $packingVolumeFactor);
+        return $this->getDensityCorrectedVolume($weight * $qty, $volume);
     }
 
     /**

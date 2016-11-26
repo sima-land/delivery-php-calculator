@@ -110,25 +110,7 @@ class CalculateTest extends TestCase
             'delivery_discount' => 0.2,
         ]);
         $this->assertTrue($calc->calculate($settlement, [$item]), $info);
-        $this->assertSame(1393.67, $calc->getResult(), $info);
-
-        $info = 'Boxed, very low density item';
-        $logger->info($info);
-        $item = new Item([
-            'id' => 1,
-            'weight' => 250.0,
-            'qty' => 500,
-            'is_paid_delivery' => true,
-            'product_volume' => 2.049,
-            'package_volume' => 2.049,
-            'packing_volume_factor' => 1.1,
-            'is_boxed' => true,
-            'box_volume' => 40.986,
-            'box_capacity' => 20,
-            'delivery_discount' => 0.2,
-        ]);
-        $this->assertTrue($calc->calculate($settlement, [$item]), $info);
-        $this->assertSame(1393.67, $calc->getResult(), $info);
+        $this->assertSame(1266.98, $calc->getResult(), $info);
 
         $info = 'Boxed, very low density item with discount';
         $logger->info($info);
@@ -146,7 +128,7 @@ class CalculateTest extends TestCase
             'delivery_discount' => 0.4,
         ]);
         $this->assertTrue($calc->calculate($settlement, [$item]), $info);
-        $this->assertSame(1045.26, $calc->getResult(), $info);
+        $this->assertSame(950.23, $calc->getResult(), $info);
 
         $info = 'Volume out of limits';
         $logger->info($info);

@@ -28,7 +28,7 @@ class CalculateTest extends TestCase
 
         $info = 'Regular, low density item';
         $logger->info($info);
-        $item = new Item([
+        $item1 = new Item([
             'id' => 1,
             'weight' => 690.0,
             'qty' => 69,
@@ -39,12 +39,12 @@ class CalculateTest extends TestCase
             'is_boxed' => false,
             'delivery_discount' => 0.2,
         ]);
-        $this->assertTrue($calc->calculate($settlement, [$item]), $info);
+        $this->assertTrue($calc->calculate($settlement, [$item1]), $info);
         $this->assertSame(235.48, $calc->getResult(), $info);
 
         $info = 'Regular, high density item';
         $logger->info($info);
-        $item = new Item([
+        $item2 = new Item([
             'id' => 1,
             'weight' => 200.0,
             'qty' => 69,
@@ -55,8 +55,12 @@ class CalculateTest extends TestCase
             'is_boxed' => false,
             'delivery_discount' => 0.2,
         ]);
-        $this->assertTrue($calc->calculate($settlement, [$item]), $info);
+        $this->assertTrue($calc->calculate($settlement, [$item2]), $info);
         $this->assertSame(192.30, $calc->getResult(), $info);
+
+        $info = 'Multiple items calculate';
+        $this->assertTrue($calc->calculate($settlement, [$item1, $item2]), $info);
+        $this->assertSame(427.77, $calc->getResult(), $info);
 
         $info = 'Boxed, low density item';
         $logger->info($info);

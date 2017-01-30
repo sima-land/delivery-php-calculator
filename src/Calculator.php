@@ -20,7 +20,7 @@ use Psr\Log\LogLevel;
  *    echo "Ошибка при расчете: " . $calc->getErrors();
  * }
  */
-class calculator implements LoggerAwareInterface
+class Calculator implements LoggerAwareInterface
 {
     use LoggerAwareTrait;
 
@@ -71,7 +71,9 @@ class calculator implements LoggerAwareInterface
             $this->checkItem($item);
         }
         if (!$this->errors) {
-            $this->addItem($settlement, $item);
+            foreach ($items as $item) {
+                $this->addItem($settlement, $item);
+            }
         }
 
         return !(bool) $this->errors;

@@ -30,6 +30,9 @@ class Calculator implements LoggerAwareInterface
     // Граница плотности, делит товары на товары с высокой и низкой плотностью
     const ITEM_DENSITY_LIMIT = 250;
 
+    // Доля общей скидки (на все товары).
+    const TOTAL_DISCOUNT_VALUE = 0;
+
     /**
      * @var float Результат расчета
      */
@@ -74,6 +77,8 @@ class Calculator implements LoggerAwareInterface
             foreach ($items as $item) {
                 $this->addItem($settlement, $item);
             }
+
+            $this->result *= 1 - self::TOTAL_DISCOUNT_VALUE;
         }
 
         return !(bool) $this->errors;

@@ -342,6 +342,10 @@ class Calculator implements LoggerAwareInterface
         if ($forMoscowPoint == true && $settlement->getID() == $this->moscowSettlementId) {
             $this->_delivery_price_per_unit_volume = self::MOSCOW_POINT_DELIVERY_PRICE;
         }
+
+        if (!$this->_delivery_price_per_unit_volume) {
+            $this->error("Settlement does not have delivery price per unit volume!");
+        }
     }
 
     /**

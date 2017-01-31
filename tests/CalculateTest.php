@@ -136,6 +136,27 @@ class CalculateTest extends TestCase
         $this->assertTrue($calc->calculate($settlement, [$item], $packingVolumeFaktor), $info);
         $this->assertSame(2043.0, $calc->getResult(), $info);
 
+        $settlementWithoutDeliveryPrice = new Settlement([
+            'id' => 1,
+            'delivery_price_per_unit_volume' => 0,
+        ]);
+        $info = 'Settlement does not have delivery price per unit volume';
+        $logger->info($info);
+        $item = new Item([
+            'id' => 1,
+            'weight' => 690.0,
+            'qty' => 20000,
+            'is_paid_delivery' => true,
+            'product_volume' => 2.049,
+            'package_volume' => 0.759,
+            'packing_volume_factor' => 1.1,
+            'is_boxed' => false,
+            'box_volume' => 0.0,
+            'box_capacity' => 0,
+            'delivery_discount' => 0.2,
+        ]);
+        $this->assertFalse($calc->calculate($settlementWithoutDeliveryPrice, [$item], $packingVolumeFaktor), $info);
+
         $info = 'Volume out of limits';
         $logger->info($info);
         $item = new Item([
@@ -278,6 +299,6 @@ class CalculateTest extends TestCase
             'delivery_discount' => 0.2,
         ]);
         $this->assertTrue($calc->calculate($settlement, [$item], $packingVolumeFaktor), $info);
-        $this->assertSame(235.47, $calc->getResult(), $info);
+        $this->assertSame(235.48, $calc->getResult(), $info);
     }
 }

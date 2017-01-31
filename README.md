@@ -21,11 +21,19 @@ https://www.sima-land.ru/api/v3/help/#Стоимость-доставки
 ```php
 
 $calc = new Calculator()
-if ($calc->calculate($settlement, $items)) {
+if ($calc->calculate($settlement, $items, $packingVolumeFactor)) {
     echo "Стоимость доставки " . $calc->getResult()
 } else {
     echo "Ошибка при расчете: " . $calc->getErrors();
 }
 ```
 Чтобы посчитать стоимость доставки для Москвы нужно передать в метод calculate 
-третьим параметром true
+четвертым параметром true
+
+Пример:
+
+```php
+
+$calc = new Calculator()
+$calc->calculate($settlement, $items, $packingVolumeFactor)
+```

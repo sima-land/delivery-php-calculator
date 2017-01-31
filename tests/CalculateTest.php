@@ -218,5 +218,10 @@ class CalculateTest extends TestCase
             'delivery_discount' => 0.2,
         ]);
         $this->assertFalse($calc->calculate($settlement, [$item]), $info);
+
+        $info = 'Regular, low density item for Moscow point';
+        $calc->moscowSettlementId = 1;
+        $this->assertTrue($calc->calculate($settlement, [$item1], true), $info);
+        $this->assertSame(162.83, $calc->getResult(), $info);
     }
 }

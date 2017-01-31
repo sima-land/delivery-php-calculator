@@ -34,6 +34,11 @@ class Calculator implements LoggerAwareInterface
     const TOTAL_DISCOUNT_VALUE = 0;
 
     /**
+     * Стоимость доставки "до точки" в Москве
+     */
+    const MOSCOW_POINT_DELIVERY_PRICE = 1068.75;
+
+    /**
      * @var float Результат расчета
      */
     protected $result;
@@ -49,6 +54,16 @@ class Calculator implements LoggerAwareInterface
     protected $trace = [];
 
     /**
+     * @var float Стоимость доставки на единицу объема
+     */
+    protected $_delivery_price_per_unit_volume;
+
+    /**
+     * @var int ID города Москва
+     */
+    public $moscowSettlementId = 1686293227;
+
+    /**
      * Расчитывает стоимость доставки.
      *
      * Функция возвращает true если расчет доставки завершился без ошибок. Результат расчета
@@ -57,25 +72,27 @@ class Calculator implements LoggerAwareInterface
      * Если в процессе расчета произошла ошибка, то функция вернет false. Подробную информацию об ошибке
      * можно получить воспользовавшись функцией getError()
      *
-     * @param \SimaLand\DeliveryCalculator\SettlementInterface
-     * @param []\SimaLand\DeliveryCalculator\ItemInterface
+     * @param \SimaLand\DeliveryCalculator\SettlementInterface $settlement
+     * @param []\SimaLand\DeliveryCalculator\ItemInterface $items
+     * @param bool $forMoscowPoint
      *
      * @return bool
      */
-    public function calculate(SettlementInterface $settlement, array $items) : bool
+    public function calculate(SettlementInterface $settlement, array $items, bool $forMoscowPoint = false) : bool
     {
         $this->result = 0.0;
         $this->errors = [];
+        $this->setDeliveryPricePerUnitVolume($settlement, $forMoscowPoint);
         $this->trace('Settlement', [
             'id' => $settlement->getID(),
-            'delivery_price_per_unit_volume' => $settlement->getDeliveryPricePerUnitVolume(),
+            'delivery_price_per_unit_volume' => $this->getDeliveryPricePerUnitVolume(),
         ]);
         foreach ($items as $item) {
             $this->checkItem($item);
         }
         if (!$this->errors) {
             foreach ($items as $item) {
-                $this->addItem($settlement, $item);
+                $this->addItem($item);
             }
 
             $this->result *= 1 - self::TOTAL_DISCOUNT_VALUE;
@@ -85,12 +102,11 @@ class Calculator implements LoggerAwareInterface
     }
 
     /**
-     * @param SettlementInterface $settlement
      * @param ItemInterface       $item
      *
      * @return bool
      */
-    protected function addItem(SettlementInterface $settlement, ItemInterface $item) : bool
+    protected function addItem(ItemInterface $item) : bool
     {
         $this->trace('Item', [
             'id' => $item->getID(),
@@ -123,7 +139,7 @@ class Calculator implements LoggerAwareInterface
         }
 
         $result = $calculatedVolume
-            * $settlement->getDeliveryPricePerUnitVolume()
+            * $this->getDeliveryPricePerUnitVolume()
             * (1 - $item->getDeliveryDiscount());
         $this->trace("Result=$result");
 
@@ -174,8 +190,6 @@ class Calculator implements LoggerAwareInterface
      * @param float $weight
      *
      * @return float
-     *
-     * @throws Exception
      */
     protected function getRegularVolume(
         int $qty,
@@ -288,5 +302,29 @@ class Calculator implements LoggerAwareInterface
         if (!is_null($this->logger)) {
             $this->logger->log(LogLevel::INFO, $message, $context);
         }
+    }
+
+    /**
+     * Устанавливает значение стоимости доставки на единицу объема
+     *
+     * @param SettlementInterface $settlement
+     * @param bool $forMoscowPoint
+     */
+    protected function setDeliveryPricePerUnitVolume(SettlementInterface $settlement, bool $forMoscowPoint)
+    {
+        $this->_delivery_price_per_unit_volume = $settlement->getDeliveryPricePerUnitVolume();
+        if ($forMoscowPoint == true && $settlement->getID() == $this->moscowSettlementId) {
+            $this->_delivery_price_per_unit_volume = self::MOSCOW_POINT_DELIVERY_PRICE;
+        }
+    }
+
+    /**
+     * Получает значение стоимости доставки на единицу объема
+     *
+     * @return float
+     */
+    public function getDeliveryPricePerUnitVolume()
+    {
+        return $this->_delivery_price_per_unit_volume;
     }
 }

@@ -7,3 +7,4 @@ require_once TEST_DIR . '../src/ItemInterface.php';
 require_once TEST_DIR . '../src/SettlementInterface.php';
 require_once 'Settlement.php';
 require_once 'Item.php';
+require_once 'VolumeFactorSource.php';

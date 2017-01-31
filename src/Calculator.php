@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare(strict_types = 1);
 
 namespace SimaLand\DeliveryCalculator;
 
@@ -64,7 +64,7 @@ class Calculator implements LoggerAwareInterface
     public $moscowSettlementId = 1686293227;
 
     /**
-     * @var int ID города Москва
+     * @var int ID города Екатеринбург
      */
     public $ekbSettlementId = 27503892;
 
@@ -83,65 +83,80 @@ class Calculator implements LoggerAwareInterface
      *
      * @return bool
      */
-    public function calculate(SettlementInterface $settlement, array $items, bool $forMoscowPoint = false) : bool
+    public function calculate(
+        SettlementInterface $settlement,
+        array $items,
+        PackingVolumeFaktor $packingVolumeFaktor,
+        bool $forMoscowPoint = false
+    ) : bool
     {
         $this->result = 0.0;
         $this->errors = [];
         $this->setDeliveryPricePerUnitVolume($settlement, $forMoscowPoint);
-        $this->trace('Settlement', [
-            'id' => $settlement->getID(),
-            'delivery_price_per_unit_volume' => $this->getDeliveryPricePerUnitVolume(),
-        ]);
+        $this->trace(
+            'Settlement',
+            [
+                'id' => $settlement->getID(),
+                'delivery_price_per_unit_volume' => $this->getDeliveryPricePerUnitVolume(),
+            ]
+        );
         foreach ($items as $item) {
             $this->checkItem($item);
         }
         if (!$this->errors) {
             foreach ($items as $item) {
                 if ($settlement->getID() != $this->ekbSettlementId || $item->isPaidDeliveryEkb()) {
-                    $this->addItem($item);
+                    $this->addItem($item, $packingVolumeFaktor);
                 }
             }
 
             $this->result *= 1 - self::TOTAL_DISCOUNT_VALUE;
         }
 
-        return !(bool) $this->errors;
+        return !(bool)$this->errors;
     }
 
     /**
-     * @param ItemInterface       $item
+     * @param ItemInterface $item
      *
      * @return bool
      */
-    protected function addItem(ItemInterface $item) : bool
+    protected function addItem(ItemInterface $item, PackingVolumeFaktor $packingVolumeFaktor) : bool
     {
-        $this->trace('Item', [
-            'id' => $item->getID(),
-            'is_paid_delivery' => $item->isPaidDelivery(),
-            'qty' => $item->getQty(),
-            'weight' => $item->getWeight(),
-            'productVolume' => $item->getProductVolume(),
-            'packageVolume' => $item->getPackageVolume(),
-            'packingVolumeFactor' => $item->getPackingVolumeFactor(),
-            'is_boxed' => $item->isBoxed(),
-            'box_volume' => $item->getBoxVolume(),
-            'box_capacity' => $item->getBoxCapacity(),
-            'delivery_discount' => $item->getDeliveryDiscount(),
-        ]);
+        $this->trace(
+            'Item',
+            [
+                'id' => $item->getID(),
+                'is_paid_delivery' => $item->isPaidDelivery(),
+                'qty' => $item->getQty(),
+                'weight' => $item->getWeight(),
+                'productVolume' => $item->getProductVolume(),
+                'packageVolume' => $item->getPackageVolume(),
+                'packingVolumeFactor' => $item->getPackingVolumeFactor(),
+                'is_boxed' => $item->isBoxed(),
+                'box_volume' => $item->getBoxVolume(),
+                'box_capacity' => $item->getBoxCapacity(),
+                'delivery_discount' => $item->getDeliveryDiscount(),
+            ]
+        );
         if ($item->isBoxed()) {
+            $volumeFactor = $packingVolumeFaktor->getFactor($item->getPackageVolume());
             $calculatedVolume = $this->getBoxedVolume(
                 $item->getQty(),
                 $item->getWeight(),
                 $item->getPackageVolume(),
                 $item->getBoxVolume(),
-                $item->getBoxCapacity()
+                $item->getBoxCapacity(),
+                $volumeFactor
             );
         } else {
+            $itemPackingVolumeFactor = $item->getPackingVolumeFactor();
+            $volumeFactor = $itemPackingVolumeFactor ?: $packingVolumeFaktor->getFactor($item->getProductVolume());
             $calculatedVolume = $this->getRegularVolume(
                 $item->getQty(),
                 $item->getWeight(),
                 $item->getProductVolume(),
-                $item->getPackingVolumeFactor()
+                $volumeFactor
             );
         }
 
@@ -168,9 +183,6 @@ class Calculator implements LoggerAwareInterface
         if (($tmp = $item->getWeight()) <= 0) {
             $this->error("Weight must be positive, weight=$tmp");
         }
-        if (($tmp = $item->getPackingVolumeFactor()) < 1) {
-            $this->error("PackingVolumeFactor=$tmp, must be equal or greater than one");
-        }
         if ($item->isBoxed()) {
             if (($tmp = $item->getPackageVolume()) <= 0) {
                 $this->error("PackageVolume must be positive, package_volume=$tmp, ");
@@ -185,6 +197,9 @@ class Calculator implements LoggerAwareInterface
             if (($tmp = $item->getProductVolume()) <= 0) {
                 $this->error("ProductVolume must be positive, product_volume=$tmp, ");
             }
+            if (($tmp = $item->getPackingVolumeFactor()) < 1 && $tmp != 0) {
+                $this->error("PackingVolumeFactor=$tmp, must not be less than one or must be zero");
+            }
         }
     }
 
@@ -193,7 +208,7 @@ class Calculator implements LoggerAwareInterface
      *
      * @param float $productVolume
      * @param float $packingVolumeFactor
-     * @param int   $qty
+     * @param int $qty
      * @param float $weight
      *
      * @return float
@@ -203,7 +218,8 @@ class Calculator implements LoggerAwareInterface
         float $weight,
         float $productVolume,
         float $packingVolumeFactor
-    ) : float {
+    ) : float
+    {
         $volume = $productVolume * $packingVolumeFactor;
         $totalVolume = $volume * $qty;
         if ($totalVolume > self::ITEM_VOLUME_LIMIT) {
@@ -220,7 +236,7 @@ class Calculator implements LoggerAwareInterface
      * @param float $qty
      * @param float $packageVolume
      * @param float $boxVolume
-     * @param int   $boxCapacity
+     * @param int $boxCapacity
      *
      * @return float
      */
@@ -229,13 +245,16 @@ class Calculator implements LoggerAwareInterface
         float $weight,
         float $packageVolume,
         float $boxVolume,
-        int $boxCapacity
-    ) : float {
+        int $boxCapacity,
+        float $packingVolumeFactor
+    ) : float
+    {
         if ($qty > 1 && $boxCapacity > 1) {
             $volume = ($qty - 1) * ($boxVolume - $packageVolume) / ($boxCapacity - 1) + $packageVolume;
         } else {
             $volume = $packageVolume;
         }
+        $volume = $volume * $packingVolumeFactor;
 
         return $this->getDensityCorrectedVolume($weight * $qty, $volume);
     }

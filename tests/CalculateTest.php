@@ -7,6 +7,7 @@ use SimaLand\DeliveryCalculator\Calculator;
 use Monolog\Handler\StreamHandler;
 use Monolog\Logger;
 use pahanini\Monolog\Formatter\CliFormatter;
+use SimaLand\DeliveryCalculator\PackingVolumeFaktor;
 
 class CalculateTest extends TestCase
 {
@@ -25,6 +26,7 @@ class CalculateTest extends TestCase
             'id' => 1,
             'delivery_price_per_unit_volume' => 1545.61,
         ]);
+        $packingVolumeFaktor = new PackingVolumeFaktor();
 
         $info = 'Regular, low density item';
         $logger->info($info);
@@ -39,7 +41,7 @@ class CalculateTest extends TestCase
             'is_boxed' => false,
             'delivery_discount' => 0.2,
         ]);
-        $this->assertTrue($calc->calculate($settlement, [$item1]), $info);
+        $this->assertTrue($calc->calculate($settlement, [$item1], $packingVolumeFaktor), $info);
         $this->assertSame(235.48, $calc->getResult(), $info);
 
         $info = 'Regular, high density item';
@@ -55,11 +57,11 @@ class CalculateTest extends TestCase
             'is_boxed' => false,
             'delivery_discount' => 0.2,
         ]);
-        $this->assertTrue($calc->calculate($settlement, [$item2]), $info);
+        $this->assertTrue($calc->calculate($settlement, [$item2], $packingVolumeFaktor), $info);
         $this->assertSame(192.30, $calc->getResult(), $info);
 
         $info = 'Multiple items calculate';
-        $this->assertTrue($calc->calculate($settlement, [$item1, $item2]), $info);
+        $this->assertTrue($calc->calculate($settlement, [$item1, $item2], $packingVolumeFaktor), $info);
         $this->assertSame(427.77, $calc->getResult(), $info);
 
         $info = 'Boxed, low density item';
@@ -77,8 +79,8 @@ class CalculateTest extends TestCase
             'box_capacity' => 20,
             'delivery_discount' => 0.2,
         ]);
-        $this->assertTrue($calc->calculate($settlement, [$item]), $info);
-        $this->assertSame(235.48, $calc->getResult(), $info);
+        $this->assertTrue($calc->calculate($settlement, [$item], $packingVolumeFaktor), $info);
+        $this->assertSame(375.91, $calc->getResult(), $info);
 
         $info = 'Boxed, low density item';
         $logger->info($info);
@@ -91,11 +93,11 @@ class CalculateTest extends TestCase
             'package_volume' => 2.049,
             'packing_volume_factor' => 1.1,
             'is_boxed' => true,
-            'box_volume' => 40.986,
+            'box_volume' => 20.986,
             'box_capacity' => 20,
             'delivery_discount' => 0.2,
         ]);
-        $this->assertTrue($calc->calculate($settlement, [$item]), $info);
+        $this->assertTrue($calc->calculate($settlement, [$item], $packingVolumeFaktor), $info);
         $this->assertSame(1706.35, $calc->getResult(), $info);
 
         $info = 'Boxed, very low density item';
@@ -113,8 +115,8 @@ class CalculateTest extends TestCase
             'box_capacity' => 20,
             'delivery_discount' => 0.2,
         ]);
-        $this->assertTrue($calc->calculate($settlement, [$item]), $info);
-        $this->assertSame(1266.98, $calc->getResult(), $info);
+        $this->assertTrue($calc->calculate($settlement, [$item], $packingVolumeFaktor), $info);
+        $this->assertSame(2724.0, $calc->getResult(), $info);
 
         $info = 'Boxed, very low density item with discount';
         $logger->info($info);
@@ -131,8 +133,8 @@ class CalculateTest extends TestCase
             'box_capacity' => 20,
             'delivery_discount' => 0.4,
         ]);
-        $this->assertTrue($calc->calculate($settlement, [$item]), $info);
-        $this->assertSame(950.23, $calc->getResult(), $info);
+        $this->assertTrue($calc->calculate($settlement, [$item], $packingVolumeFaktor), $info);
+        $this->assertSame(2043.0, $calc->getResult(), $info);
 
         $info = 'Volume out of limits';
         $logger->info($info);
@@ -149,7 +151,7 @@ class CalculateTest extends TestCase
             'box_capacity' => 0,
             'delivery_discount' => 0.2,
         ]);
-        $this->assertFalse($calc->calculate($settlement, [$item]), $info);
+        $this->assertFalse($calc->calculate($settlement, [$item], $packingVolumeFaktor), $info);
 
         $info = 'Zero qty';
         $logger->info($info);
@@ -166,7 +168,7 @@ class CalculateTest extends TestCase
             'box_capacity' => 0,
             'delivery_discount' => 0.2,
         ]);
-        $this->assertFalse($calc->calculate($settlement, [$item]), $info);
+        $this->assertFalse($calc->calculate($settlement, [$item], $packingVolumeFaktor), $info);
 
         $info = 'Zero weight';
         $logger->info($info);
@@ -183,7 +185,7 @@ class CalculateTest extends TestCase
             'box_capacity' => 0,
             'delivery_discount' => 0.2,
         ]);
-        $this->assertFalse($calc->calculate($settlement, [$item]), $info);
+        $this->assertFalse($calc->calculate($settlement, [$item], $packingVolumeFaktor), $info);
 
         $info = 'Zero box capacity';
         $logger->info($info);
@@ -200,7 +202,7 @@ class CalculateTest extends TestCase
             'box_capacity' => 0,
             'delivery_discount' => 0.2,
         ]);
-        $this->assertFalse($calc->calculate($settlement, [$item]), $info);
+        $this->assertFalse($calc->calculate($settlement, [$item], $packingVolumeFaktor), $info);
 
         $info = 'Zero product volume';
         $logger->info($info);
@@ -217,15 +219,15 @@ class CalculateTest extends TestCase
             'box_capacity' => 2,
             'delivery_discount' => 0.2,
         ]);
-        $this->assertFalse($calc->calculate($settlement, [$item]), $info);
+        $this->assertFalse($calc->calculate($settlement, [$item], $packingVolumeFaktor), $info);
 
         $info = 'Regular, low density item for Moscow point';
         $calc->moscowSettlementId = 1;
-        $this->assertTrue($calc->calculate($settlement, [$item1], true), $info);
+        $this->assertTrue($calc->calculate($settlement, [$item1], $packingVolumeFaktor, true), $info);
         $this->assertSame(162.83, $calc->getResult(), $info);
 
         $info = 'Regular, low density item for Ekb. Not calculated';
-        $settlement = new Settlement([
+        $settlementEkb = new Settlement([
             'id' => 27503892,
             'delivery_price_per_unit_volume' => 500.77,
         ]);
@@ -240,7 +242,7 @@ class CalculateTest extends TestCase
             'is_boxed' => false,
             'delivery_discount' => 0.2,
         ]);
-        $this->assertTrue($calc->calculate($settlement, [$item]), $info);
+        $this->assertTrue($calc->calculate($settlementEkb, [$item], $packingVolumeFaktor), $info);
         $this->assertSame(0.0, $calc->getResult(), $info);
 
         $info = 'Regular, low density item for Ekb. Calculated';
@@ -256,7 +258,26 @@ class CalculateTest extends TestCase
             'is_boxed' => false,
             'delivery_discount' => 0.2,
         ]);
-        $this->assertTrue($calc->calculate($settlement, [$item]), $info);
+        $this->assertTrue($calc->calculate($settlementEkb, [$item], $packingVolumeFaktor), $info);
         $this->assertSame(76.29, $calc->getResult(), $info);
+
+        $info = 'Boxed, low density item with volume factor source';
+        $packingVolumeFaktor = new PackingVolumeFaktor(new VolumeFactorSource());
+        $logger->info($info);
+        $item = new Item([
+            'id' => 1,
+            'weight' => 690.0,
+            'qty' => 69,
+            'is_paid_delivery' => true,
+            'product_volume' => 2.049,
+            'package_volume' => 2.049,
+            'packing_volume_factor' => 1.1,
+            'is_boxed' => true,
+            'box_volume' => 40.986,
+            'box_capacity' => 20,
+            'delivery_discount' => 0.2,
+        ]);
+        $this->assertTrue($calc->calculate($settlement, [$item], $packingVolumeFaktor), $info);
+        $this->assertSame(235.47, $calc->getResult(), $info);
     }
 }

@@ -34,11 +34,6 @@ class Calculator implements LoggerAwareInterface
     const TOTAL_DISCOUNT_VALUE = 0;
 
     /**
-     * Стоимость доставки "до точки" в Москве
-     */
-    const MOSCOW_POINT_DELIVERY_PRICE = 1068.75;
-
-    /**
      * @var float Результат расчета
      */
     protected $result;
@@ -59,16 +54,6 @@ class Calculator implements LoggerAwareInterface
     protected $_delivery_price_per_unit_volume;
 
     /**
-     * @var int ID города Москва
-     */
-    public $moscowSettlementId = 1686293227;
-
-    /**
-     * @var int ID города Екатеринбург
-     */
-    public $ekbSettlementId = 27503892;
-
-    /**
      * Расчитывает стоимость доставки.
      *
      * Функция возвращает true если расчет доставки завершился без ошибок. Результат расчета
@@ -86,7 +71,7 @@ class Calculator implements LoggerAwareInterface
     public function calculate(
         SettlementInterface $settlement,
         array $items,
-        PackingVolumeFaktor $packingVolumeFaktor,
+        PackingVolumeFactor $packingVolumeFactor,
         bool $forMoscowPoint = false
     ) : bool
     {
@@ -105,8 +90,8 @@ class Calculator implements LoggerAwareInterface
         }
         if (!$this->errors) {
             foreach ($items as $item) {
-                if ($settlement->getID() != $this->ekbSettlementId || $item->isPaidDeliveryEkb()) {
-                    $this->addItem($item, $packingVolumeFaktor);
+                if (!$settlement->isEkb() || $item->isPaidDeliveryEkb()) {
+                    $this->addItem($item, $packingVolumeFactor);
                 }
             }
 
@@ -121,7 +106,7 @@ class Calculator implements LoggerAwareInterface
      *
      * @return bool
      */
-    protected function addItem(ItemInterface $item, PackingVolumeFaktor $packingVolumeFaktor) : bool
+    protected function addItem(ItemInterface $item, PackingVolumeFactor $packingVolumeFactor) : bool
     {
         $this->trace(
             'Item',
@@ -140,7 +125,7 @@ class Calculator implements LoggerAwareInterface
             ]
         );
         if ($item->isBoxed()) {
-            $volumeFactor = $packingVolumeFaktor->getFactor($item->getPackageVolume());
+            $volumeFactor = $packingVolumeFactor->getFactor($item->getPackageVolume());
             $calculatedVolume = $this->getBoxedVolume(
                 $item->getQty(),
                 $item->getWeight(),
@@ -151,7 +136,7 @@ class Calculator implements LoggerAwareInterface
             );
         } else {
             $itemPackingVolumeFactor = $item->getPackingVolumeFactor();
-            $volumeFactor = $itemPackingVolumeFactor ?: $packingVolumeFaktor->getFactor($item->getProductVolume());
+            $volumeFactor = $itemPackingVolumeFactor ?: $packingVolumeFactor->getFactor($item->getProductVolume());
             $calculatedVolume = $this->getRegularVolume(
                 $item->getQty(),
                 $item->getWeight(),
@@ -339,8 +324,8 @@ class Calculator implements LoggerAwareInterface
     protected function setDeliveryPricePerUnitVolume(SettlementInterface $settlement, bool $forMoscowPoint)
     {
         $this->_delivery_price_per_unit_volume = $settlement->getDeliveryPricePerUnitVolume();
-        if ($forMoscowPoint == true && $settlement->getID() == $this->moscowSettlementId) {
-            $this->_delivery_price_per_unit_volume = self::MOSCOW_POINT_DELIVERY_PRICE;
+        if ($forMoscowPoint == true && $settlement->isMoscow()) {
+            $this->_delivery_price_per_unit_volume = $settlement->getMoscowPointDeliveryPrice();
         }
 
         if (!$this->_delivery_price_per_unit_volume) {

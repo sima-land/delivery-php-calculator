@@ -1,15 +1,9 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: danil
- * Date: 31.01.17
- * Time: 13:37
- */
 
 namespace SimaLand\DeliveryCalculator;
 
 
-class PackingVolumeFaktor
+class PackingVolumeFactor
 {
     // Факторы по умолчанию
     const DEFAULT_FACTORS = [
@@ -40,7 +34,7 @@ class PackingVolumeFaktor
     protected $source = null;
 
     /**
-     * PackingVolumeFaktor constructor.
+     * PackingVolumeFactor constructor.
      * @param VolumeFactorSourceInterface|null $source
      */
     public function __construct($source = null)

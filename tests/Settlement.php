@@ -2,14 +2,12 @@
 
 namespace SimaLand\DeliveryCalculator\tests;
 
-/**
- * Created by PhpStorm.
- * User: pahanini
- * Date: 15/11/2016
- * Time: 19:00.
- */
+use SimaLand\DeliveryCalculator\SettlementTrait;
+
 class Settlement implements \SimaLand\DeliveryCalculator\SettlementInterface
 {
+    use SettlementTrait;
+
     protected $params = [];
 
     public function __construct(array $params)

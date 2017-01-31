@@ -24,7 +24,7 @@ class Settlement implements \SimaLand\DeliveryCalculator\SettlementInterface
         return 0;
     }
 
-    public function getDeliveryPricePerUnitVolume() : float
+    public function getRegularPointDeliveryPrice(bool $forMoscowPoint = false) : float
     {
         if (array_key_exists('delivery_price_per_unit_volume', $this->params)) {
             return $this->params['delivery_price_per_unit_volume'];

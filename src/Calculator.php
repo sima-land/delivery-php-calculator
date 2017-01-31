@@ -320,11 +320,7 @@ class Calculator implements LoggerAwareInterface
      */
     protected function setDeliveryPricePerUnitVolume(SettlementInterface $settlement, bool $forMoscowPoint)
     {
-        $this->_delivery_price_per_unit_volume = $settlement->getDeliveryPricePerUnitVolume();
-        if ($forMoscowPoint == true && $settlement->isMoscow()) {
-            $this->_delivery_price_per_unit_volume = $settlement->getMoscowPointDeliveryPrice();
-        }
-
+        $this->_delivery_price_per_unit_volume = $settlement->getDeliveryPricePerUnitVolume($forMoscowPoint);
         if (!$this->_delivery_price_per_unit_volume) {
             $this->error("Settlement does not have delivery price per unit volume!");
         }

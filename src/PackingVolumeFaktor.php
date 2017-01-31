@@ -8,7 +8,6 @@
 
 namespace SimaLand\DeliveryCalculator;
 
-
 class PackingVolumeFaktor
 {
     // Факторы по умолчанию

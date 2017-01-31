@@ -223,5 +223,40 @@ class CalculateTest extends TestCase
         $calc->moscowSettlementId = 1;
         $this->assertTrue($calc->calculate($settlement, [$item1], true), $info);
         $this->assertSame(162.83, $calc->getResult(), $info);
+
+        $info = 'Regular, low density item for Ekb. Not calculated';
+        $settlement = new Settlement([
+            'id' => 27503892,
+            'delivery_price_per_unit_volume' => 500.77,
+        ]);
+        $item = new Item([
+            'id' => 1,
+            'weight' => 690.0,
+            'qty' => 69,
+            'is_paid_delivery' => true,
+            'product_volume' => 2.049,
+            'package_volume' => 0.759,
+            'packing_volume_factor' => 1.1,
+            'is_boxed' => false,
+            'delivery_discount' => 0.2,
+        ]);
+        $this->assertTrue($calc->calculate($settlement, [$item]), $info);
+        $this->assertSame(0.0, $calc->getResult(), $info);
+
+        $info = 'Regular, low density item for Ekb. Calculated';
+        $item = new Item([
+            'id' => 1,
+            'weight' => 690.0,
+            'qty' => 69,
+            'is_paid_delivery' => true,
+            'is_paid_delivery_ekb' => true,
+            'product_volume' => 2.049,
+            'package_volume' => 0.759,
+            'packing_volume_factor' => 1.1,
+            'is_boxed' => false,
+            'delivery_discount' => 0.2,
+        ]);
+        $this->assertTrue($calc->calculate($settlement, [$item]), $info);
+        $this->assertSame(76.29, $calc->getResult(), $info);
     }
 }

@@ -18,6 +18,11 @@ interface ItemInterface
     public function isPaidDelivery() : bool;
 
     /**
+     * @return bool Является ли доставка товара в Екатеринбург платной?
+     */
+    public function isPaidDeliveryEkb() : bool;
+
+    /**
      * @return int Количество отправляемых товаров
      */
     public function getQty() : int;

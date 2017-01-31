@@ -64,6 +64,11 @@ class Calculator implements LoggerAwareInterface
     public $moscowSettlementId = 1686293227;
 
     /**
+     * @var int ID города Москва
+     */
+    public $ekbSettlementId = 27503892;
+
+    /**
      * Расчитывает стоимость доставки.
      *
      * Функция возвращает true если расчет доставки завершился без ошибок. Результат расчета
@@ -92,7 +97,9 @@ class Calculator implements LoggerAwareInterface
         }
         if (!$this->errors) {
             foreach ($items as $item) {
-                $this->addItem($item);
+                if ($settlement->getID() != $this->ekbSettlementId || $item->isPaidDeliveryEkb()) {
+                    $this->addItem($item);
+                }
             }
 
             $this->result *= 1 - self::TOTAL_DISCOUNT_VALUE;

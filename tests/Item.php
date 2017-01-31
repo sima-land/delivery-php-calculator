@@ -31,6 +31,15 @@ class Item implements ItemInterface
         return false;
     }
 
+    public function isPaidDeliveryEkb() : bool
+    {
+        if (array_key_exists('is_paid_delivery_ekb', $this->params)) {
+            return $this->params['is_paid_delivery_ekb'];
+        }
+
+        return false;
+    }
+
     public function getQty() : int
     {
         if (array_key_exists('qty', $this->params)) {

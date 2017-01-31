@@ -27,3 +27,5 @@ if ($calc->calculate($settlement, $items)) {
     echo "Ошибка при расчете: " . $calc->getErrors();
 }
 ```
+Чтобы посчитать стоимость доставки для Москвы нужно передать в метод calculate 
+третьим параметром true

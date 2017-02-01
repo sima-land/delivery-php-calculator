@@ -112,7 +112,7 @@ class Calculator implements LoggerAwareInterface
             'Item',
             [
                 'id' => $item->getID(),
-                'is_paid_delivery' => $item->isPaidDelivery(),
+                'is_paid_delivery' => $item->isPaidDelivery($settlement),
                 'qty' => $item->getQty(),
                 'weight' => $item->getWeight(),
                 'productVolume' => $item->getProductVolume(),

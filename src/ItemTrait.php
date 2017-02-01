@@ -12,19 +12,15 @@ trait ItemTrait
      * @param SettlementInterface $settlement
      * @return bool Является ли доставка товара платной?
      */
-    public function isPaidDelivery(SettlementInterface $settlement = null) : bool
+    public function isPaidDelivery(SettlementInterface $settlement) : bool
     {
-        $result = $this->isPaidDeliveryRegular();
-        if ($settlement) {
-            $result = $result && (!$settlement->isEkb() || $this->isPaidDeliveryEkb());
-        }
-        return $result;
+        return $this->isPaidDeliveryRegular() && (!$settlement->isLocal() || $this->isPaidDeliveryLocal());
     }
 
     /**
-     * @return bool Является ли доставка товара в Екатеринбург платной?
+     * @return bool Является ли доставка товара в локальные точки платной?
      */
-    public function isPaidDeliveryEkb() : bool
+    public function isPaidDeliveryLocal() : bool
     {
         return true;
     }

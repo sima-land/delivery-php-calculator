@@ -25,17 +25,12 @@ interface SettlementInterface
     public function getRegularPointDeliveryPrice() : float;
 
     /**
-     * @return bool Екатеринбург ли?
+     * @return bool Локальная ли точка доставки?
      */
-    public function isEkb() : bool;
+    public function isLocal() : bool;
 
     /**
      * @return bool Москва ли?
      */
     public function isMoscow() : bool;
-
-    /**
-     * @return bool
-     */
-    public function switchForMoscowPoint($forMoscowPoint = true);
 }

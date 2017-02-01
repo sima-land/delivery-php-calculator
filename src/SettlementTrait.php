@@ -18,11 +18,6 @@ trait SettlementTrait
     public $moscowId = 1686293227;
 
     /**
-     * @var int ID города Екатеринбург
-     */
-    public $ekbId = 27503892;
-
-    /**
      * @return int Идентификатор openstreetmap.org
      */
     public function getId() : int
@@ -31,11 +26,12 @@ trait SettlementTrait
     }
 
     /**
-     * @return bool Екатеринбург ли?
+     * @return bool Локальная ли точка доставки?
      */
-    public function isEkb() : bool
+    public function isLocal() : bool
     {
-        return $this->getId() == $this->ekbId;
+        $localId = 27503892;
+        return $this->getId() == $localId;
     }
 
     /**
@@ -55,7 +51,6 @@ trait SettlementTrait
     }
 
     /**
-     * @param bool $isSpecialPrice
      * @return float Цена доставки до точки OSM за куб. метр
      */
     public function getDeliveryPricePerUnitVolume() : float

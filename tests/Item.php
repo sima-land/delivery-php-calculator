@@ -34,10 +34,10 @@ class Item implements ItemInterface
         return false;
     }
 
-    public function isPaidDeliveryEkb() : bool
+    public function isPaidDeliveryLocal() : bool
     {
-        if (array_key_exists('is_paid_delivery_ekb', $this->params)) {
-            return $this->params['is_paid_delivery_ekb'];
+        if (array_key_exists('is_paid_delivery_local', $this->params)) {
+            return $this->params['is_paid_delivery_local'];
         }
 
         return false;

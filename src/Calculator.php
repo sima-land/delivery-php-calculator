@@ -54,11 +54,6 @@ class Calculator implements LoggerAwareInterface
     protected $trace = [];
 
     /**
-     * @var float Стоимость доставки на единицу объема
-     */
-    protected $_delivery_price_per_unit_volume;
-
-    /**
      * Расчитывает стоимость доставки.
      *
      * Функция возвращает true если расчет доставки завершился без ошибок. Результат расчета
@@ -324,29 +319,5 @@ class Calculator implements LoggerAwareInterface
         if (!is_null($this->logger)) {
             $this->logger->log(LogLevel::INFO, $message, $context);
         }
-    }
-
-    /**
-     * Устанавливает значение стоимости доставки на единицу объема
-     *
-     * @param SettlementInterface $settlement
-     * @param bool $forMoscowPoint
-     */
-    protected function setDeliveryPricePerUnitVolume(SettlementInterface $settlement, bool $forMoscowPoint)
-    {
-        $this->_delivery_price_per_unit_volume = $settlement->getDeliveryPricePerUnitVolume($forMoscowPoint);
-        if (!$this->_delivery_price_per_unit_volume) {
-            $this->error("Settlement does not have delivery price per unit volume!");
-        }
-    }
-
-    /**
-     * Получает значение стоимости доставки на единицу объема
-     *
-     * @return float
-     */
-    public function getDeliveryPricePerUnitVolume()
-    {
-        return $this->_delivery_price_per_unit_volume;
     }
 }

@@ -20,17 +20,7 @@ interface SettlementInterface
     public function getDeliveryPricePerUnitVolume() : float;
 
     /**
-     * @return float Стоимость доставки за единицу объема до любого города
-     */
-    public function getRegularPointDeliveryPrice() : float;
-
-    /**
      * @return bool Локальная ли точка доставки?
      */
     public function isLocal() : bool;
-
-    /**
-     * @return bool Москва ли?
-     */
-    public function isMoscow() : bool;
 }

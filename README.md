@@ -27,13 +27,15 @@ if ($calc->calculate($settlement, $items, $packingVolumeFactor)) {
     echo "Ошибка при расчете: " . $calc->getErrors();
 }
 ```
-Чтобы посчитать стоимость доставки для Москвы нужно передать в метод calculate 
-четвертым параметром true
+Чтобы посчитать стоимость доставки до точки выгрузки в Москве нужно передать в метод 
+calculate в качестве объекта города нужно передать объект класса
+SimaLand\DeliveryCalculator\models\MoscowPickupPoint
 
 Пример:
 
 ```php
 
-$calc = new Calculator()
+$calc = new Calculator();
+$settlement = new \SimaLand\DeliveryCalculator\models\MoscowPickupPoint();
 $calc->calculate($settlement, $items, $packingVolumeFactor)
 ```

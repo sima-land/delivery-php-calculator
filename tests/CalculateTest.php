@@ -8,6 +8,7 @@ use Monolog\Handler\StreamHandler;
 use Monolog\Logger;
 use pahanini\Monolog\Formatter\CliFormatter;
 use SimaLand\DeliveryCalculator\PackingVolumeFactor;
+use SimaLand\DeliveryCalculator\models\MoscowPickupPoint;
 
 class CalculateTest extends TestCase
 {
@@ -261,11 +262,7 @@ class CalculateTest extends TestCase
         $this->assertFalse($calc->calculate($settlement, [$item], $packingVolumeFactor), $info);
 
         $info = 'Regular, low density item for Moscow point';
-        $settlementMoscow = new Settlement([
-            'id' => 1686293227,
-            'delivery_price_per_unit_volume' => 1545.61,
-        ]);
-        $settlementMoscow->switchForMoscowPoint();
+        $settlementMoscow = new MoscowPickupPoint();
         $this->assertTrue($calc->calculate($settlementMoscow, [$item1], $packingVolumeFactor), $info);
         $this->assertSame(162.83, $calc->getResult(), $info);
 

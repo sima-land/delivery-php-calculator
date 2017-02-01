@@ -4,7 +4,7 @@ namespace SimaLand\DeliveryCalculator;
 
 /**
  * Trait ItemTrait.
- * Реализует ItemInterface
+ * Частично реализует ItemInterface
  */
 trait ItemTrait
 {
@@ -20,16 +20,10 @@ trait ItemTrait
     /**
      * @return bool Является ли доставка товара в локальные точки платной?
      */
-    public function isPaidDeliveryLocal() : bool
-    {
-        return true;
-    }
+    public abstract function isPaidDeliveryLocal() : bool;
 
     /**
      * @return bool Является ли доставка товара в стандартный населенный пункт платной?
      */
-    public function isPaidDeliveryRegular() : bool
-    {
-        return true;
-    }
+    public abstract function isPaidDeliveryRegular() : bool;
 }

@@ -39,11 +39,6 @@ class Calculator implements LoggerAwareInterface
     protected $result;
 
     /**
-     * @var float Результат расчета
-     */
-    protected $additionalResult;
-
-    /**
      * @var []string Массив с сообщениями об ошибках
      */
     protected $errors = [];

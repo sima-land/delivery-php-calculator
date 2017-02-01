@@ -15,13 +15,27 @@ interface SettlementInterface
     public function getID() : int;
 
     /**
-     * @param bool $isSpecialPrice
      * @return float Цена доставки до точки OSM за куб. метр
      */
-    public function getDeliveryPricePerUnitVolume(bool $isSpecialPrice = false) : float;
+    public function getDeliveryPricePerUnitVolume() : float;
 
     /**
      * @return float Стоимость доставки за единицу объема до любого города
      */
     public function getRegularPointDeliveryPrice() : float;
+
+    /**
+     * @return bool Екатеринбург ли?
+     */
+    public function isEkb() : bool;
+
+    /**
+     * @return bool Москва ли?
+     */
+    public function isMoscow() : bool;
+
+    /**
+     * @return bool
+     */
+    public function switchForMoscowPoint($forMoscowPoint = true);
 }

@@ -64,15 +64,13 @@ class Calculator implements LoggerAwareInterface
      *
      * @param \SimaLand\DeliveryCalculator\SettlementInterface $settlement
      * @param []\SimaLand\DeliveryCalculator\ItemInterface $items
-     * @param bool $isSpecialPrice
      *
      * @return bool
      */
     public function calculate(
         SettlementInterface $settlement,
         array $items,
-        PackingVolumeFactor $packingVolumeFactor,
-        bool $isSpecialPrice = false
+        PackingVolumeFactor $packingVolumeFactor
     ) : bool {
         $this->result = 0.0;
         $this->errors = [];
@@ -80,7 +78,7 @@ class Calculator implements LoggerAwareInterface
             'Settlement',
             [
                 'id' => $settlement->getID(),
-                'delivery_price_per_unit_volume' => $settlement->getDeliveryPricePerUnitVolume($isSpecialPrice),
+                'delivery_price_per_unit_volume' => $settlement->getDeliveryPricePerUnitVolume(),
             ]
         );
         foreach ($items as $item) {
@@ -89,7 +87,7 @@ class Calculator implements LoggerAwareInterface
         if (!$this->errors) {
             foreach ($items as $item) {
                 if ($item->isPaidDelivery($settlement)) {
-                    $this->addItem($item, $packingVolumeFactor, $settlement, $isSpecialPrice);
+                    $this->addItem($item, $packingVolumeFactor, $settlement);
                 }
             }
 
@@ -103,14 +101,12 @@ class Calculator implements LoggerAwareInterface
      * @param ItemInterface $item
      * @param PackingVolumeFactor $packingVolumeFactor
      * @param SettlementInterface $settlement
-     * @param bool $isSpecialPrice
      * @return bool
      */
     protected function addItem(
         ItemInterface $item,
         PackingVolumeFactor $packingVolumeFactor,
-        SettlementInterface $settlement,
-        bool $isSpecialPrice
+        SettlementInterface $settlement
     ) : bool {
         $this->trace(
             'Item',
@@ -150,7 +146,7 @@ class Calculator implements LoggerAwareInterface
         }
 
         $result = $calculatedVolume
-            * $settlement->getDeliveryPricePerUnitVolume($isSpecialPrice)
+            * $settlement->getDeliveryPricePerUnitVolume()
             * (1 - $item->getDeliveryDiscount());
         $this->trace("Result=$result");
 

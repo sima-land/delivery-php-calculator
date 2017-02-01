@@ -265,7 +265,8 @@ class CalculateTest extends TestCase
             'id' => 1686293227,
             'delivery_price_per_unit_volume' => 1545.61,
         ]);
-        $this->assertTrue($calc->calculate($settlementMoscow, [$item1], $packingVolumeFactor, true), $info);
+        $settlementMoscow->switchForMoscowPoint();
+        $this->assertTrue($calc->calculate($settlementMoscow, [$item1], $packingVolumeFactor), $info);
         $this->assertSame(162.83, $calc->getResult(), $info);
 
         $info = 'Regular, low density item for Ekb. Not calculated';

@@ -11,7 +11,7 @@ trait SettlementTrait
     /**
      * @return int Идентификатор openstreetmap.org
      */
-    public abstract function getId() : int;
+    abstract public function getId() : int;
 
     /**
      * @return bool Локальная ли точка доставки?

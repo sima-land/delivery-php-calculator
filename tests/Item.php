@@ -3,9 +3,12 @@
 namespace SimaLand\DeliveryCalculator\tests;
 
 use SimaLand\DeliveryCalculator\ItemInterface;
+use SimaLand\DeliveryCalculator\ItemTrait;
 
 class Item implements ItemInterface
 {
+    use ItemTrait;
+
     protected $params = [];
 
     public function __construct(array $params)
@@ -22,7 +25,7 @@ class Item implements ItemInterface
         return 0;
     }
 
-    public function isPaidDelivery() : bool
+    public function isPaidDeliveryRegular() : bool
     {
         if (array_key_exists('is_paid_delivery', $this->params)) {
             return $this->params['is_paid_delivery'];

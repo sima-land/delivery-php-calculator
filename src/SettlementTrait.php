@@ -16,12 +16,12 @@ trait SettlementTrait
     /**
      * @var int ID города Москва
      */
-    public $moscowSettlementId = 1686293227;
+    public $moscowId = 1686293227;
 
     /**
      * @var int ID города Екатеринбург
      */
-    public $ekbSettlementId = 27503892;
+    public $ekbId = 27503892;
 
     /**
      * @return int Идентификатор openstreetmap.org
@@ -36,7 +36,7 @@ trait SettlementTrait
      */
     public function isMoscow() : bool
     {
-        return $this->getId() == $this->moscowSettlementId;
+        return $this->getId() == $this->moscowId;
     }
 
     /**
@@ -44,7 +44,7 @@ trait SettlementTrait
      */
     public function isEkb() : bool
     {
-        return $this->getId() == $this->ekbSettlementId;
+        return $this->getId() == $this->ekbId;
     }
 
     /**

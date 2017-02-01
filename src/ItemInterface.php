@@ -13,9 +13,15 @@ interface ItemInterface
     public function getID() : int;
 
     /**
+     * @param SettlementInterface $settlement
      * @return bool Является ли доставка товара платной?
      */
-    public function isPaidDelivery() : bool;
+    public function isPaidDelivery(SettlementInterface $settlement = null) : bool;
+
+    /**
+     * @return bool Является ли доставка товара в стандартный населенный пункт платной?
+     */
+    public function isPaidDeliveryRegular() : bool;
 
     /**
      * @return bool Является ли доставка товара в Екатеринбург платной?

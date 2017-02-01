@@ -89,7 +89,7 @@ class Calculator implements LoggerAwareInterface
         }
         if (!$this->errors) {
             foreach ($items as $item) {
-                if (!$settlement->isEkb() || $item->isPaidDeliveryEkb()) {
+                if ($item->isPaidDelivery($settlement)) {
                     $this->addItem($item, $packingVolumeFactor);
                 }
             }

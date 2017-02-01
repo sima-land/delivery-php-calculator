@@ -82,6 +82,24 @@ class CalculateTest extends TestCase
         $this->assertTrue($calc->calculate($settlement, [$item], $packingVolumeFactor), $info);
         $this->assertSame(375.91, $calc->getResult(), $info);
 
+        $info = 'Not paid delivery';
+        $logger->info($info);
+        $item = new Item([
+            'id' => 1,
+            'weight' => 690.0,
+            'qty' => 69,
+            'is_paid_delivery' => false,
+            'product_volume' => 2.049,
+            'package_volume' => 2.049,
+            'packing_volume_factor' => 1.1,
+            'is_boxed' => true,
+            'box_volume' => 40.986,
+            'box_capacity' => 20,
+            'delivery_discount' => 0.2,
+        ]);
+        $this->assertTrue($calc->calculate($settlement, [$item], $packingVolumeFactor), $info);
+        $this->assertSame(0.0, $calc->getResult(), $info);
+
         $info = 'Boxed, low density item';
         $logger->info($info);
         $item = new Item([

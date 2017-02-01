@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace SimaLand\DeliveryCalculator;
 
@@ -78,8 +78,7 @@ class Calculator implements LoggerAwareInterface
         array $items,
         PackingVolumeFactor $packingVolumeFactor,
         bool $isSpecialPrice = false
-    ) : bool
-    {
+    ) : bool {
         $this->result = 0.0;
         $this->errors = [];
         $this->trace(
@@ -117,8 +116,7 @@ class Calculator implements LoggerAwareInterface
         PackingVolumeFactor $packingVolumeFactor,
         SettlementInterface $settlement,
         bool $isSpecialPrice
-    ) : bool
-    {
+    ) : bool {
         $this->trace(
             'Item',
             [
@@ -214,8 +212,7 @@ class Calculator implements LoggerAwareInterface
         float $weight,
         float $productVolume,
         float $packingVolumeFactor
-    ) : float
-    {
+    ) : float {
         $volume = $productVolume * $packingVolumeFactor;
         $totalVolume = $volume * $qty;
         if ($totalVolume > self::ITEM_VOLUME_LIMIT) {
@@ -243,8 +240,7 @@ class Calculator implements LoggerAwareInterface
         float $boxVolume,
         int $boxCapacity,
         float $packingVolumeFactor
-    ) : float
-    {
+    ) : float {
         if ($qty > 1 && $boxCapacity > 1) {
             $volume = ($qty - 1) * ($boxVolume - $packageVolume) / ($boxCapacity - 1) + $packageVolume;
         } else {

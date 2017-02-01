@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare(strict_types = 1);
 
 namespace SimaLand\DeliveryCalculator;
 
@@ -39,6 +39,11 @@ class Calculator implements LoggerAwareInterface
     protected $result;
 
     /**
+     * @var float Результат расчета
+     */
+    protected $additionalResult;
+
+    /**
      * @var []string Массив с сообщениями об ошибках
      */
     protected $errors = [];
@@ -64,7 +69,7 @@ class Calculator implements LoggerAwareInterface
      *
      * @param \SimaLand\DeliveryCalculator\SettlementInterface $settlement
      * @param []\SimaLand\DeliveryCalculator\ItemInterface $items
-     * @param bool $forMoscowPoint
+     * @param bool $isSpecialPrice
      *
      * @return bool
      */
@@ -72,16 +77,16 @@ class Calculator implements LoggerAwareInterface
         SettlementInterface $settlement,
         array $items,
         PackingVolumeFactor $packingVolumeFactor,
-        bool $forMoscowPoint = false
-    ) : bool {
+        bool $isSpecialPrice = false
+    ) : bool
+    {
         $this->result = 0.0;
         $this->errors = [];
-        $this->setDeliveryPricePerUnitVolume($settlement, $forMoscowPoint);
         $this->trace(
             'Settlement',
             [
                 'id' => $settlement->getID(),
-                'delivery_price_per_unit_volume' => $this->getDeliveryPricePerUnitVolume(),
+                'delivery_price_per_unit_volume' => $settlement->getDeliveryPricePerUnitVolume($isSpecialPrice),
             ]
         );
         foreach ($items as $item) {
@@ -90,7 +95,7 @@ class Calculator implements LoggerAwareInterface
         if (!$this->errors) {
             foreach ($items as $item) {
                 if ($item->isPaidDelivery($settlement)) {
-                    $this->addItem($item, $packingVolumeFactor);
+                    $this->addItem($item, $packingVolumeFactor, $settlement, $isSpecialPrice);
                 }
             }
 
@@ -102,10 +107,17 @@ class Calculator implements LoggerAwareInterface
 
     /**
      * @param ItemInterface $item
-     *
+     * @param PackingVolumeFactor $packingVolumeFactor
+     * @param SettlementInterface $settlement
+     * @param bool $isSpecialPrice
      * @return bool
      */
-    protected function addItem(ItemInterface $item, PackingVolumeFactor $packingVolumeFactor) : bool
+    protected function addItem(
+        ItemInterface $item,
+        PackingVolumeFactor $packingVolumeFactor,
+        SettlementInterface $settlement,
+        bool $isSpecialPrice
+    ) : bool
     {
         $this->trace(
             'Item',
@@ -145,7 +157,7 @@ class Calculator implements LoggerAwareInterface
         }
 
         $result = $calculatedVolume
-            * $this->getDeliveryPricePerUnitVolume()
+            * $settlement->getDeliveryPricePerUnitVolume($isSpecialPrice)
             * (1 - $item->getDeliveryDiscount());
         $this->trace("Result=$result");
 
@@ -202,7 +214,8 @@ class Calculator implements LoggerAwareInterface
         float $weight,
         float $productVolume,
         float $packingVolumeFactor
-    ) : float {
+    ) : float
+    {
         $volume = $productVolume * $packingVolumeFactor;
         $totalVolume = $volume * $qty;
         if ($totalVolume > self::ITEM_VOLUME_LIMIT) {
@@ -230,7 +243,8 @@ class Calculator implements LoggerAwareInterface
         float $boxVolume,
         int $boxCapacity,
         float $packingVolumeFactor
-    ) : float {
+    ) : float
+    {
         if ($qty > 1 && $boxCapacity > 1) {
             $volume = ($qty - 1) * ($boxVolume - $packageVolume) / ($boxCapacity - 1) + $packageVolume;
         } else {

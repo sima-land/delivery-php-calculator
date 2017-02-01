@@ -9,14 +9,12 @@ namespace SimaLand\DeliveryCalculator;
 trait SettlementTrait
 {
     /**
-     * Стоимость доставки "до точки" в Москве
+     * @var array Специальные цены на доставку
      */
-    protected $_moscowPointDeliveryPrice = 1068.75;
-
-    /**
-     * @var int ID города Москва
-     */
-    public $moscowId = 1686293227;
+    public $specialPrices = [
+        // Стоимость доставки "до точки" в Москве
+        1686293227 => 1068.75
+    ];
 
     /**
      * @var int ID города Екатеринбург
@@ -32,27 +30,11 @@ trait SettlementTrait
     }
 
     /**
-     * @return bool Москва ли?
-     */
-    public function isMoscow() : bool
-    {
-        return $this->getId() == $this->moscowId;
-    }
-
-    /**
      * @return bool Екатеринбург ли?
      */
     public function isEkb() : bool
     {
         return $this->getId() == $this->ekbId;
-    }
-
-    /**
-     * @return float Стоимость доставки за единицу объема до москвы
-     */
-    public function getMoscowPointDeliveryPrice() : float
-    {
-        return $this->_moscowPointDeliveryPrice;
     }
 
     /**
@@ -64,16 +46,16 @@ trait SettlementTrait
     }
 
     /**
-     * @param bool $forMoscowPoint
+     * @param bool $isSpecialPrice
      * @return float Цена доставки до точки OSM за куб. метр
      */
-    public function getDeliveryPricePerUnitVolume(bool $forMoscowPoint = false) : float
+    public function getDeliveryPricePerUnitVolume(bool $isSpecialPrice = false) : float
     {
-        $deliveryPrice = $this->getRegularPointDeliveryPrice();
-        if ($forMoscowPoint == true && $this->isMoscow()) {
-            $deliveryPrice = $this->getMoscowPointDeliveryPrice();
+        $id = $this->getID();
+        $result = $this->getRegularPointDeliveryPrice();
+        if ($isSpecialPrice && isset($this->specialPrices[$id])) {
+            $result = $this->specialPrices[$id];
         }
-
-        return $deliveryPrice;
+        return $result;
     }
 }

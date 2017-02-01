@@ -20,10 +20,10 @@ trait ItemTrait
     /**
      * @return bool Является ли доставка товара в локальные точки платной?
      */
-    public abstract function isPaidDeliveryLocal() : bool;
+    abstract public function isPaidDeliveryLocal() : bool;
 
     /**
      * @return bool Является ли доставка товара в стандартный населенный пункт платной?
      */
-    public abstract function isPaidDeliveryRegular() : bool;
+    abstract public function isPaidDeliveryRegular() : bool;
 }

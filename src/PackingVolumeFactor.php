@@ -2,6 +2,11 @@
 
 namespace SimaLand\DeliveryCalculator;
 
+/**
+ * @var PackingVolumeFactor Компонент для работы с общими коэффициентами упаковки
+ * Class PackingVolumeFactor
+ * @package SimaLand\DeliveryCalculator
+ */
 class PackingVolumeFactor
 {
     // Факторы по умолчанию

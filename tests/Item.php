@@ -4,10 +4,16 @@ namespace SimaLand\DeliveryCalculator\tests;
 
 use SimaLand\DeliveryCalculator\ItemInterface;
 use SimaLand\DeliveryCalculator\ItemTrait;
+use SimaLand\DeliveryCalculator\PackingVolumeFactor;
 
 class Item implements ItemInterface
 {
     use ItemTrait;
+
+    /**
+     * @var PackingVolumeFactor
+     */
+    public static $packingVolumeFactor;
 
     protected $params = [];
 
@@ -79,7 +85,7 @@ class Item implements ItemInterface
         return 0.0;
     }
 
-    public function getPackingVolumeFactor() : float
+    public function getOwnPackingVolumeFactor() : float
     {
         if (array_key_exists('packing_volume_factor', $this->params)) {
             return (float) $this->params['packing_volume_factor'];
@@ -122,5 +128,10 @@ class Item implements ItemInterface
         }
 
         return 0.0;
+    }
+
+    public function getPackingVolumeFactorComponent() : PackingVolumeFactor
+    {
+        return self::$packingVolumeFactor;
     }
 }

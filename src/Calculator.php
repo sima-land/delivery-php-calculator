@@ -64,8 +64,7 @@ class Calculator implements LoggerAwareInterface
      */
     public function calculate(
         SettlementInterface $settlement,
-        array $items,
-        PackingVolumeFactor $packingVolumeFactor
+        array $items
     ) : bool {
         $this->result = 0.0;
         $this->errors = [];
@@ -82,7 +81,7 @@ class Calculator implements LoggerAwareInterface
         if (!$this->errors) {
             foreach ($items as $item) {
                 if ($item->isPaidDelivery($settlement)) {
-                    $this->addItem($item, $packingVolumeFactor, $settlement);
+                    $this->addItem($item, $settlement);
                 }
             }
 
@@ -94,13 +93,11 @@ class Calculator implements LoggerAwareInterface
 
     /**
      * @param ItemInterface $item
-     * @param PackingVolumeFactor $packingVolumeFactor
      * @param SettlementInterface $settlement
      * @return bool
      */
     protected function addItem(
         ItemInterface $item,
-        PackingVolumeFactor $packingVolumeFactor,
         SettlementInterface $settlement
     ) : bool {
         $this->trace(
@@ -120,23 +117,20 @@ class Calculator implements LoggerAwareInterface
             ]
         );
         if ($item->isBoxed()) {
-            $volumeFactor = $packingVolumeFactor->getFactor($item->getPackageVolume());
             $calculatedVolume = $this->getBoxedVolume(
                 $item->getQty(),
                 $item->getWeight(),
                 $item->getPackageVolume(),
                 $item->getBoxVolume(),
                 $item->getBoxCapacity(),
-                $volumeFactor
+                $item->getPackingVolumeFactor()
             );
         } else {
-            $itemPackingVolumeFactor = $item->getPackingVolumeFactor();
-            $volumeFactor = $itemPackingVolumeFactor ?: $packingVolumeFactor->getFactor($item->getProductVolume());
             $calculatedVolume = $this->getRegularVolume(
                 $item->getQty(),
                 $item->getWeight(),
                 $item->getProductVolume(),
-                $volumeFactor
+                $item->getPackingVolumeFactor()
             );
         }
 

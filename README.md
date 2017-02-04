@@ -21,7 +21,7 @@ https://www.sima-land.ru/api/v3/help/#Стоимость-доставки
 ```php
 
 $calc = new Calculator()
-if ($calc->calculate($settlement, $items, $packingVolumeFactor)) {
+if ($calc->calculate($settlement, $items)) {
     echo "Стоимость доставки " . $calc->getResult()
 } else {
     echo "Ошибка при расчете: " . $calc->getErrors();
@@ -37,5 +37,5 @@ SimaLand\DeliveryCalculator\models\MoscowPickupPoint
 
 $calc = new Calculator();
 $settlement = new \SimaLand\DeliveryCalculator\models\MoscowPickupPoint();
-$calc->calculate($settlement, $items, $packingVolumeFactor)
+$calc->calculate($settlement, $items)
 ```

@@ -107,16 +107,12 @@ class Calculator implements LoggerAwareInterface
 
         if ($qty <= 0) {
             $this->error("Qty must be positive, qty=$qty");
-
-            return false;
         };
-        if (($error = $this->validateItem($item)) && $error) {
-            $this->error($error);
-
-            return false;
-        }
+        $this->validateItem($item);
         if (($tmp = $this->point->getDeliveryPricePerUnitVolume()) <= 0) {
             $this->error("Invalid delivery per unit price $tmp");
+        }
+        if ($this->getErrors()) {
             return false;
         }
 
@@ -174,8 +170,7 @@ class Calculator implements LoggerAwareInterface
         float $weight,
         float $productVolume,
         float $packingVolumeFactor
-    ) : float
-    {
+    ) : float {
         $volume = $productVolume * $packingVolumeFactor;
         $totalVolume = $volume * $qty;
         if ($totalVolume > self::ITEM_VOLUME_LIMIT) {
@@ -204,8 +199,7 @@ class Calculator implements LoggerAwareInterface
         float $boxVolume,
         int $boxCapacity,
         float $packingVolumeFactor
-    ) : float
-    {
+    ) : float {
         if ($qty > 1 && $boxCapacity > 1) {
             $volume = ($qty - 1) * ($boxVolume - $packageVolume) / ($boxCapacity - 1) + $packageVolume;
         } else {
@@ -265,7 +259,8 @@ class Calculator implements LoggerAwareInterface
      *
      * @return $this
      */
-    public function reset() {
+    public function reset()
+    {
         $this->result = 0.0;
         $this->errors = [];
         $this->trace = [];
@@ -303,31 +298,29 @@ class Calculator implements LoggerAwareInterface
      * Проверяет все ли методы $item возвращают корректные значения.
      *
      * @param \SimaLand\DeliveryCalculator\ItemInterface $item
-     * @return string
      */
     protected function validateItem(ItemInterface $item)
     {
         if (($tmp = $item->getWeight()) <= 0) {
-            return "Weight must be positive, weight=$tmp";
+            $this->error("Weight must be positive, weight=$tmp");
         }
         if ($item->isBoxed()) {
             if (($tmp = $item->getPackageVolume()) <= 0) {
-                return "PackageVolume must be positive, package_volume=$tmp";
+                $this->error("PackageVolume must be positive, package_volume=$tmp");
             }
             if (($tmp = $item->getBoxVolume()) <= 0) {
-                return "BoxVolume must be positive, box_volume=$tmp";
+                $this->error("BoxVolume must be positive, box_volume=$tmp");
             }
             if (($tmp = $item->getBoxCapacity()) <= 0) {
-                return "BoxCapacity must be positive, box_capacity=$tmp";
+                $this->error("BoxCapacity must be positive, box_capacity=$tmp");
             }
         } else {
             if (($tmp = $item->getProductVolume()) <= 0) {
-                return "ProductVolume must be positive, product_volume=$tmp";
+                $this->error("ProductVolume must be positive, product_volume=$tmp");
             }
             if (($tmp = $item->getPackingVolumeFactor()) < 1 && $tmp != 0) {
-                return "PackingVolumeFactor=$tmp, must not be less than one or must be zero";
+                $this->error("PackingVolumeFactor=$tmp, must not be less than one or must be zero");
             }
         }
-        return "";
     }
 }

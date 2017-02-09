@@ -22,7 +22,7 @@ https://www.sima-land.ru/api/v3/help/#Стоимость-доставки
 - товар, объект реализующий [ItemInterface](src/ItemInterface.php)
 - источник данных о коэффициентах упаковки, объект реализующий [PackingVolumeFactorSourceInterface](src/PackingVolumeFactorSourceInterface.php)
 
-Для того, чтобы  почитать стоимость доставки для товара нужно создать класс калькулятора
+Для того, чтобы  посчитать стоимость доставки товара нужно создать объект класса калькулятора
 с указанием точки доставки и коэффициентов упаковки.
 
 ```php
@@ -33,7 +33,9 @@ $calc = new Calculator($defaultVolumeFactor, $point, false)
 считаться бесплатной для всех товаров кроме тех, у которых метод ```isPaidDeliveryLocal()``` возвращает ```true```
 
 Для добавления товара к стоимости доставки используется функция ```addItem($item, $qty)```,
-для получения результатов ```getResult()```. Для того чтобы обнулить результат используйте ```reset()```
+для получения результатов ```getResult()```. Для того чтобы обнулить результат используйте ```reset()```. 
+В случае ошибки метод ```addItem($item, $qty)``` вернет false. Информацию об ошибках после этого можно 
+посмотреть с помощью метода ```getErrors()```.
 
 Пример:
 
@@ -45,6 +47,11 @@ echo $calc->getResult();  // вывод стоимости доставки item
 $calc->reset();
 $calc->addItem($item3, 1)
 echo $calc->getResult(); // вывод стоимости доставки item3 1 шт. 
+
+// $item4->getWeight() = 0
+if (!$calc->addItem($item4, 1000)) {
+	return $calc->getErrors() // ['Weight must be positive, weight=0']
+}
 ```
 
 ## Точка доставки 
@@ -61,7 +68,7 @@ echo $calc->getResult(); // вывод стоимости доставки item3
 Все данные для реализации [PointInterface](src/ItemInterface.php) можно получить 
 по API https://www.sima-land.ru/api/v3/help/#Товар 
 
-## Данных о коэффициентах упаковки
+## Данные о коэффициентах упаковки
 
-Данных о коэффициентах упаковки, объект реализующий [PackingVolumeFactorSourceInterface]. 
+Данные о коэффициентах упаковки, объект реализующий [PackingVolumeFactorSourceInterface]. 
 Можно воспользоваться готовой реализацией модели [DefaultPackingVolumeFactorSource](src/models/DefaultPackingVolumeFactorSource.php)

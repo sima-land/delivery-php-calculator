@@ -12,7 +12,8 @@ use SimaLand\DeliveryCalculator\models\MoscowPoint;
 
 class CalculateTest extends TestCase
 {
-    protected function getCalc($point, $isLocal = false) : Calculator {
+    protected function getCalc($point, $isLocal = false) : Calculator
+    {
         $logger = new Logger('calc');
         $formatter = new CliFormatter();
         $streamHandler = new StreamHandler('php://stdout', Logger::DEBUG);
@@ -24,7 +25,8 @@ class CalculateTest extends TestCase
         return $calc;
     }
 
-    protected function getRegularItem() : Item {
+    protected function getRegularItem() : Item
+    {
         return new Item([
             'weight' => 690.0,
             'is_paid_delivery' => true,
@@ -36,7 +38,8 @@ class CalculateTest extends TestCase
         ]);
     }
 
-    protected function getBoxedItem() : Item {
+    protected function getBoxedItem() : Item
+    {
         return new Item([
             'weight' => 690.0,
             'is_paid_delivery' => true,

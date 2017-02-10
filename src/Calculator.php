@@ -14,13 +14,13 @@ use Psr\Log\LogLevel;
  * Пример использвания:
  *
  * $calc = new Calculator()
- * if ($calc->calculate($settlement, $items)) {
+ * if ($calc->addItem($item, 10)) {
  *    echo "Стоимость доставки " . $calc->getResult()
  * } else {
  *    echo "Ошибка при расчете: " . $calc->getErrors();
  * }
  */
-class calculator implements LoggerAwareInterface
+class Calculator implements LoggerAwareInterface
 {
     use LoggerAwareTrait;
 
@@ -46,129 +46,124 @@ class calculator implements LoggerAwareInterface
     protected $trace = [];
 
     /**
-     * Расчитывает стоимость доставки.
-     *
-     * Функция возвращает true если расчет доставки завершился без ошибок. Результат расчета
-     * можно получить функцией  getResult()
-     *
-     * Если в процессе расчета произошла ошибка, то функция вернет false. Подробную информацию об ошибке
-     * можно получить воспользовавшись функцией getError()
-     *
-     * @param \SimaLand\DeliveryCalculator\SettlementInterface
-     * @param []\SimaLand\DeliveryCalculator\ItemInterface
-     *
-     * @return bool
+     * @var bool
      */
-    public function calculate(SettlementInterface $settlement, array $items) : bool
-    {
-        $this->result = 0.0;
-        $this->errors = [];
-        $this->trace('Settlement', [
-            'id' => $settlement->getID(),
-            'delivery_price_per_unit_volume' => $settlement->getDeliveryPricePerUnitVolume(),
-        ]);
-        foreach ($items as $item) {
-            $this->checkItem($item);
-        }
-        if (!$this->errors) {
-            $this->addItem($settlement, $item);
-        }
-
-        return !(bool) $this->errors;
-    }
+    private $isLocal;
 
     /**
-     * @param SettlementInterface $settlement
-     * @param ItemInterface       $item
-     *
-     * @return bool
+     * @var \SimaLand\DeliveryCalculator\PointInterface Массив с информацией о промежуточных расчетах
      */
-    protected function addItem(SettlementInterface $settlement, ItemInterface $item) : bool
+    private $point;
+
+    /**
+     * @var PackingVolumeFactorSourceInterface
+     */
+    private $packingVolumeFactorSource;
+
+    /**
+     * Конструктор калькулятора
+     *
+     * @param PackingVolumeFactorSourceInterface $packingVolumeFactorSource
+     * @param PointInterface $point точка доставки
+     * @param bool $isLocal признак "локальной" по отношению к складу доставки
+     */
+    public function __construct(
+        PackingVolumeFactorSourceInterface $packingVolumeFactorSource,
+        PointInterface $point,
+        bool $isLocal
+    ) {
+        $this->packingVolumeFactorSource = $packingVolumeFactorSource;
+        $this->point = $point;
+        $this->isLocal = $isLocal;
+        $this->reset();
+    }
+
+    public function addItem(ItemInterface $item, int $qty) : bool
     {
-        $this->trace('Item', [
-            'id' => $item->getID(),
-            'is_paid_delivery' => $item->isPaidDelivery(),
-            'qty' => $item->getQty(),
-            'weight' => $item->getWeight(),
-            'productVolume' => $item->getProductVolume(),
-            'packageVolume' => $item->getPackageVolume(),
-            'packingVolumeFactor' => $item->getPackingVolumeFactor(),
-            'is_boxed' => $item->isBoxed(),
-            'box_volume' => $item->getBoxVolume(),
-            'box_capacity' => $item->getBoxCapacity(),
-            'delivery_discount' => $item->getDeliveryDiscount(),
-        ]);
+        $this->trace(
+            'Add item',
+            [
+                // point info
+                'point' => $this->point,
+                'point_delivery_price_per_unit_volume' => $this->point->getDeliveryPricePerUnitVolume(),
+
+                // item info
+                'item' => $item,
+                'item_is_paid_delivery' => $item->isPaidDelivery(),
+                'item_is_paid_delivery_local' => $item->isPaidDeliveryLocal(),
+                'item_weight' => $item->getWeight(),
+                'item_product_volume' => $item->getProductVolume(),
+                'item_package_volume' => $item->getPackageVolume(),
+                'item_packing_volume_factor' => $item->getPackingVolumeFactor(),
+                'item_is_boxed' => $item->isBoxed(),
+                'item_box_volume' => $item->getBoxVolume(),
+                'item_box_capacity' => $item->getBoxCapacity(),
+                'item_delivery_discount' => $item->getDeliveryDiscount(),
+
+                // qty
+                'qty' => $qty,
+            ]
+        );
+
+        if ($qty <= 0) {
+            $this->error("Qty must be positive, qty=$qty");
+        };
+        $this->validateItem($item);
+        if (($tmp = $this->point->getDeliveryPricePerUnitVolume()) <= 0) {
+            $this->error("Invalid delivery per unit price $tmp");
+        }
+        if ($this->getErrors()) {
+            return false;
+        }
+
+        if (!$item->isPaidDelivery() || $this->isLocal && !$item->isPaidDeliveryLocal()) {
+            $this->trace("Free delivery");
+
+            return true;
+        }
+
+
         if ($item->isBoxed()) {
             $calculatedVolume = $this->getBoxedVolume(
-                $item->getQty(),
+                $qty,
                 $item->getWeight(),
                 $item->getPackageVolume(),
                 $item->getBoxVolume(),
-                $item->getBoxCapacity()
+                $item->getBoxCapacity(),
+                $this->packingVolumeFactorSource->getFactor($item->getPackageVolume())
             );
         } else {
             $calculatedVolume = $this->getRegularVolume(
-                $item->getQty(),
+                $qty,
                 $item->getWeight(),
                 $item->getProductVolume(),
-                $item->getPackingVolumeFactor()
+                $item->getPackingVolumeFactor() ?: $this->packingVolumeFactorSource->getFactor($item->getPackageVolume())
             );
         }
 
-        $result = $calculatedVolume
-            * $settlement->getDeliveryPricePerUnitVolume()
-            * (1 - $item->getDeliveryDiscount());
-        $this->trace("Result=$result");
+        if ($this->errors) {
+            return false;
+        }
 
+        $result = $calculatedVolume
+            * $this->point->getDeliveryPricePerUnitVolume()
+            * (1 - $item->getDeliveryDiscount());
         $this->result += $result;
+        $this->trace("paid delivery=$result, overall={$this->result}");
 
         return true;
     }
 
-    /**
-     * Проверяет все ли методы $item возвращают корректные значения.
-     *
-     * @param ItemInterface $item
-     */
-    protected function checkItem(ItemInterface $item)
-    {
-        if (($tmp = $item->getQty()) <= 0) {
-            $this->error("Qty must be positive, qty=$tmp");
-        }
-        if (($tmp = $item->getWeight()) <= 0) {
-            $this->error("Weight must be positive, weight=$tmp");
-        }
-        if (($tmp = $item->getPackingVolumeFactor()) < 1) {
-            $this->error("PackingVolumeFactor=$tmp, must be equal or greater than one");
-        }
-        if ($item->isBoxed()) {
-            if (($tmp = $item->getPackageVolume()) <= 0) {
-                $this->error("PackageVolume must be positive, package_volume=$tmp, ");
-            }
-            if (($tmp = $item->getBoxVolume()) <= 0) {
-                $this->error("BoxVolume must be positive, box_volume=$tmp, ");
-            }
-            if (($tmp = $item->getBoxCapacity()) <= 0) {
-                $this->error("BoxCapacity must be positive, box_capacity=$tmp,");
-            }
-        } else {
-            if (($tmp = $item->getProductVolume()) <= 0) {
-                $this->error("ProductVolume must be positive, product_volume=$tmp, ");
-            }
-        }
-    }
 
     /**
      * Возвращает расчетный объем для обычного товара.
      *
      * @param float $productVolume
      * @param float $packingVolumeFactor
-     * @param int   $qty
+     * @param int $qty
      * @param float $weight
      *
      * @return float
-     *
-     * @throws Exception
      */
     protected function getRegularVolume(
         int $qty,
@@ -192,7 +187,8 @@ class calculator implements LoggerAwareInterface
      * @param float $qty
      * @param float $packageVolume
      * @param float $boxVolume
-     * @param int   $boxCapacity
+     * @param int $boxCapacity
+     * @param float $packingVolumeFactor
      *
      * @return float
      */
@@ -201,13 +197,15 @@ class calculator implements LoggerAwareInterface
         float $weight,
         float $packageVolume,
         float $boxVolume,
-        int $boxCapacity
+        int $boxCapacity,
+        float $packingVolumeFactor
     ) : float {
         if ($qty > 1 && $boxCapacity > 1) {
             $volume = ($qty - 1) * ($boxVolume - $packageVolume) / ($boxCapacity - 1) + $packageVolume;
         } else {
             $volume = $packageVolume;
         }
+        $volume = $volume * $packingVolumeFactor;
 
         return $this->getDensityCorrectedVolume($weight * $qty, $volume);
     }
@@ -257,6 +255,19 @@ class calculator implements LoggerAwareInterface
     }
 
     /**
+     * Обнуляет результат расчета
+     *
+     * @return $this
+     */
+    public function reset()
+    {
+        $this->result = 0.0;
+        $this->errors = [];
+        $this->trace = [];
+        return $this;
+    }
+
+    /**
      * Добавляет сообщение об ошибке, также отправляя его в лог.
      *
      * @param $message
@@ -280,6 +291,36 @@ class calculator implements LoggerAwareInterface
         $this->trace[] = [$message, $context];
         if (!is_null($this->logger)) {
             $this->logger->log(LogLevel::INFO, $message, $context);
+        }
+    }
+
+    /**
+     * Проверяет все ли методы $item возвращают корректные значения.
+     *
+     * @param \SimaLand\DeliveryCalculator\ItemInterface $item
+     */
+    protected function validateItem(ItemInterface $item)
+    {
+        if (($tmp = $item->getWeight()) <= 0) {
+            $this->error("Weight must be positive, weight=$tmp");
+        }
+        if ($item->isBoxed()) {
+            if (($tmp = $item->getPackageVolume()) <= 0) {
+                $this->error("PackageVolume must be positive, package_volume=$tmp");
+            }
+            if (($tmp = $item->getBoxVolume()) <= 0) {
+                $this->error("BoxVolume must be positive, box_volume=$tmp");
+            }
+            if (($tmp = $item->getBoxCapacity()) <= 0) {
+                $this->error("BoxCapacity must be positive, box_capacity=$tmp");
+            }
+        } else {
+            if (($tmp = $item->getProductVolume()) <= 0) {
+                $this->error("ProductVolume must be positive, product_volume=$tmp");
+            }
+            if (($tmp = $item->getPackingVolumeFactor()) < 1 && $tmp != 0) {
+                $this->error("PackingVolumeFactor=$tmp, must not be less than one or must be zero");
+            }
         }
     }
 }

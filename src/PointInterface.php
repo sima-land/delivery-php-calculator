@@ -7,15 +7,10 @@ namespace SimaLand\DeliveryCalculator;
  *
  * https://www.sima-land.ru/api/v3/help/#Города-доставки
  */
-interface SettlementInterface
+interface PointInterface
 {
     /**
-     * @return int Идентификатор openstreetmap.org
-     */
-    public function getID() : int;
-
-    /**
-     * @return float Цена доставки до точки OSM за куб. метр
+     * @return float Цена доставки до точки за куб. метр
      */
     public function getDeliveryPricePerUnitVolume() : float;
 }

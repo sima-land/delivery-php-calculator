@@ -7,31 +7,28 @@ use SimaLand\DeliveryCalculator\Calculator;
 use Monolog\Handler\StreamHandler;
 use Monolog\Logger;
 use pahanini\Monolog\Formatter\CliFormatter;
+use SimaLand\DeliveryCalculator\models\DefaultPackingVolumeFactorSource;
+use SimaLand\DeliveryCalculator\models\MoscowPoint;
 
 class CalculateTest extends TestCase
 {
-    public function testCalc()
+    protected function getCalc($point, $isLocal = false) : Calculator
     {
         $logger = new Logger('calc');
         $formatter = new CliFormatter();
         $streamHandler = new StreamHandler('php://stdout', Logger::DEBUG);
         $streamHandler->setFormatter($formatter);
         $logger->pushHandler($streamHandler);
-
-        $calc = new Calculator();
+        $packingVolumeFactorSource = new DefaultPackingVolumeFactorSource();
+        $calc = new Calculator($packingVolumeFactorSource, $point, $isLocal);
         $calc->setLogger($logger);
+        return $calc;
+    }
 
-        $settlement = new Settlement([
-            'id' => 1,
-            'delivery_price_per_unit_volume' => 1545.61,
-        ]);
-
-        $info = 'Regular, low density item';
-        $logger->info($info);
-        $item = new Item([
-            'id' => 1,
+    protected function getRegularItem() : Item
+    {
+        return new Item([
             'weight' => 690.0,
-            'qty' => 69,
             'is_paid_delivery' => true,
             'product_volume' => 2.049,
             'package_volume' => 0.759,
@@ -39,180 +36,126 @@ class CalculateTest extends TestCase
             'is_boxed' => false,
             'delivery_discount' => 0.2,
         ]);
-        $this->assertTrue($calc->calculate($settlement, [$item]), $info);
-        $this->assertSame(235.48, $calc->getResult(), $info);
+    }
+
+    protected function getBoxedItem() : Item
+    {
+        return new Item([
+            'weight' => 690.0,
+            'is_paid_delivery' => true,
+            'product_volume' => 2.049,
+            'package_volume' => 2.049,
+            'packing_volume_factor' => 1.1,
+            'is_boxed' => true,
+            'box_volume' => 40.986,
+            'box_capacity' => 20,
+            'delivery_discount' => 0.2,
+        ]);
+    }
+
+    public function testCalc()
+    {
+        // Стандартная, не локальная точка
+        $point = new Point(['id' => 1, 'delivery_price_per_unit_volume' => 1545.61]);
+        $calc = $this->getCalc($point, false);
 
         $info = 'Regular, high density item';
-        $logger->info($info);
-        $item = new Item([
-            'id' => 1,
-            'weight' => 200.0,
-            'qty' => 69,
-            'is_paid_delivery' => true,
-            'product_volume' => 2.049,
-            'package_volume' => 0.759,
-            'packing_volume_factor' => 1.1,
-            'is_boxed' => false,
-            'delivery_discount' => 0.2,
-        ]);
-        $this->assertTrue($calc->calculate($settlement, [$item]), $info);
-        $this->assertSame(192.30, $calc->getResult(), $info);
-
-        $info = 'Boxed, low density item';
-        $logger->info($info);
-        $item = new Item([
-            'id' => 1,
-            'weight' => 690.0,
-            'qty' => 69,
-            'is_paid_delivery' => true,
-            'product_volume' => 2.049,
-            'package_volume' => 2.049,
-            'packing_volume_factor' => 1.1,
-            'is_boxed' => true,
-            'box_volume' => 40.986,
-            'box_capacity' => 20,
-            'delivery_discount' => 0.2,
-        ]);
-        $this->assertTrue($calc->calculate($settlement, [$item]), $info);
+        $item1 = $this->getRegularItem();
+        $calc->reset();
+        $this->assertTrue($calc->addItem($item1, 69), $info);
         $this->assertSame(235.48, $calc->getResult(), $info);
 
+        $info = 'Regular, low density item';
+        $item2 = $this->getRegularItem();
+        $calc->reset();
+        $item2->param('weight', 200.00);
+        $this->assertTrue($calc->addItem($item2, 69), $info);
+        $this->assertSame(192.30, $calc->getResult(), $info);
+
+        $info = 'Multiple items calculate';
+        $calc->reset();
+        $this->assertTrue($calc->addItem($item1, 69), $info);
+        $this->assertTrue($calc->addItem($item2, 69), $info);
+        $this->assertSame(427.77, $calc->getResult(), $info);
+
         $info = 'Boxed, low density item';
-        $logger->info($info);
-        $item = new Item([
-            'id' => 1,
-            'weight' => 690.0,
-            'qty' => 500,
-            'is_paid_delivery' => true,
-            'product_volume' => 2.049,
-            'package_volume' => 2.049,
-            'packing_volume_factor' => 1.1,
-            'is_boxed' => true,
-            'box_volume' => 40.986,
-            'box_capacity' => 20,
-            'delivery_discount' => 0.2,
-        ]);
-        $this->assertTrue($calc->calculate($settlement, [$item]), $info);
+        $item = $this->getBoxedItem();
+        $calc->reset();
+        $this->assertTrue($calc->addItem($item, 69), $info);
+        $this->assertSame(375.91, $calc->getResult(), $info);
+
+        $info = 'No paid delivery';
+        $calc->reset();
+        $item = $this->getBoxedItem()->param('is_paid_delivery', false);
+        $this->assertTrue($calc->addItem($item, 69), $info);
+        $this->assertSame(0.0, $calc->getResult(), $info);
+
+        $info = 'Boxed, low density item';
+        $item = $this->getBoxedItem()->param('box_volume', 20.986);
+        $calc->reset();
+        $this->assertTrue($calc->addItem($item, 500), $info);
         $this->assertSame(1706.35, $calc->getResult(), $info);
 
         $info = 'Boxed, very low density item';
-        $logger->info($info);
-        $item = new Item([
-            'id' => 1,
-            'weight' => 250.0,
-            'qty' => 500,
-            'is_paid_delivery' => true,
-            'product_volume' => 2.049,
-            'package_volume' => 2.049,
-            'packing_volume_factor' => 1.1,
-            'is_boxed' => true,
-            'box_volume' => 40.986,
-            'box_capacity' => 20,
-            'delivery_discount' => 0.2,
-        ]);
-        $this->assertTrue($calc->calculate($settlement, [$item]), $info);
-        $this->assertSame(1266.98, $calc->getResult(), $info);
+        $item = $this->getBoxedItem()->param('box_volume', 40.986);
+        $calc->reset();
+        $this->assertTrue($calc->addItem($item, 500), $info);
+        $this->assertSame(2724.0, $calc->getResult(), $info);
 
         $info = 'Boxed, very low density item with discount';
-        $logger->info($info);
-        $item = new Item([
-            'id' => 1,
-            'weight' => 250.0,
-            'qty' => 500,
-            'is_paid_delivery' => true,
-            'product_volume' => 2.049,
-            'package_volume' => 2.049,
-            'packing_volume_factor' => 1.1,
-            'is_boxed' => true,
-            'box_volume' => 40.986,
-            'box_capacity' => 20,
-            'delivery_discount' => 0.4,
-        ]);
-        $this->assertTrue($calc->calculate($settlement, [$item]), $info);
-        $this->assertSame(950.23, $calc->getResult(), $info);
+        $item = $this->getBoxedItem()->param("weight", 250.0)->param("delivery_discount", 0.4);
+        $calc->reset();
+        $this->assertTrue($calc->addItem($item, 500), $info);
+        $this->assertSame(2043.0, $calc->getResult(), $info);
+
+
+        // Negative scenarios
+        $info = 'Settlement does not have delivery price per unit volume';
+        $invalidPoint = new Point(['id' => 1, 'delivery_price_per_unit_volume' => 0]);
+        $calc1= $this->getCalc($invalidPoint);
+        $item = $this->getRegularItem();
+        $this->assertFalse($calc1->addItem($item, 20000), $info);
 
         $info = 'Volume out of limits';
-        $logger->info($info);
-        $item = new Item([
-            'id' => 1,
-            'weight' => 690.0,
-            'qty' => 20000,
-            'is_paid_delivery' => true,
-            'product_volume' => 2.049,
-            'package_volume' => 0.759,
-            'packing_volume_factor' => 1.1,
-            'is_boxed' => false,
-            'box_volume' => 0.0,
-            'box_capacity' => 0,
-            'delivery_discount' => 0.2,
-        ]);
-        $this->assertFalse($calc->calculate($settlement, [$item]), $info);
+        $calc->reset();
+        $item = $this->getRegularItem();
+        $this->assertFalse($calc->addItem($item, 20000), $info);
 
         $info = 'Zero qty';
-        $logger->info($info);
-        $item = new Item([
-            'id' => 1,
-            'weight' => 690.0,
-            'qty' => 0,
-            'is_paid_delivery' => true,
-            'product_volume' => 2.049,
-            'package_volume' => 0.759,
-            'packing_volume_factor' => 1.1,
-            'is_boxed' => false,
-            'box_volume' => 0.0,
-            'box_capacity' => 0,
-            'delivery_discount' => 0.2,
-        ]);
-        $this->assertFalse($calc->calculate($settlement, [$item]), $info);
+        $item = $this->getRegularItem();
+        $this->assertFalse($calc->addItem($item, 0), $info);
 
         $info = 'Zero weight';
-        $logger->info($info);
-        $item = new Item([
-            'id' => 1,
-            'weight' => 0.0,
-            'qty' => 1,
-            'is_paid_delivery' => true,
-            'product_volume' => 2.049,
-            'package_volume' => 0.759,
-            'packing_volume_factor' => 1.1,
-            'is_boxed' => false,
-            'box_volume' => 0.0,
-            'box_capacity' => 0,
-            'delivery_discount' => 0.2,
-        ]);
-        $this->assertFalse($calc->calculate($settlement, [$item]), $info);
+        $item = $this->getRegularItem()->param("weight", 0);
+        $this->assertFalse($calc->addItem($item, 1), $info);
 
         $info = 'Zero box capacity';
-        $logger->info($info);
-        $item = new Item([
-            'id' => 1,
-            'weight' => 12.0,
-            'qty' => 1,
-            'is_paid_delivery' => true,
-            'product_volume' => 2.049,
-            'package_volume' => 0.759,
-            'packing_volume_factor' => 1.1,
-            'is_boxed' => true,
-            'box_volume' => 1.0,
-            'box_capacity' => 0,
-            'delivery_discount' => 0.2,
-        ]);
-        $this->assertFalse($calc->calculate($settlement, [$item]), $info);
+        $this->getBoxedItem()->param("box_capacity", 0);
+        $this->assertFalse($calc->addItem($item, 1), $info);
 
-        $info = 'Zero product volume';
-        $logger->info($info);
-        $item = new Item([
-            'id' => 1,
-            'weight' => 12.0,
-            'qty' => 1,
-            'is_paid_delivery' => true,
-            'product_volume' => -1.0,
-            'package_volume' => 0.759,
-            'packing_volume_factor' => 1.1,
-            'is_boxed' => false,
-            'box_volume' => 1.0,
-            'box_capacity' => 2,
-            'delivery_discount' => 0.2,
+        $info = 'Negative product volume';
+        $item = $this->getBoxedItem()->param("product_volume", -1);
+        $this->assertFalse($calc->addItem($item, 1), $info);
+
+        $info = 'Regular, low density item for Moscow point';
+        $settlementMoscow = new MoscowPoint();
+        $item = $this->getRegularItem();
+        $calc = $this->getCalc($settlementMoscow);
+        $this->assertTrue($calc->addItem($item, 69), $info);
+        $this->assertSame(162.83, $calc->getResult(), $info);
+
+        $info = 'Regular, low density item for local point. Not calculated';
+        $settlementLocal = new Point([
+            'delivery_price_per_unit_volume' => 500.77,
         ]);
-        $this->assertFalse($calc->calculate($settlement, [$item]), $info);
+        $item = $this->getRegularItem();
+        $calc = $this->getCalc($settlementLocal, true);
+        $this->assertTrue($calc->addItem($item, 69), $info);
+        $this->assertSame(0.0, $calc->getResult(), $info);
+
+        $info = 'Regular, low density item for local point. Calculated';
+        $item = $this->getRegularItem()->param("is_paid_delivery_local", true);
+        $this->assertTrue($calc->addItem($item, 69), $info);
+        $this->assertSame(76.29, $calc->getResult(), $info);
     }
 }

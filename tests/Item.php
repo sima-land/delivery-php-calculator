@@ -6,6 +6,11 @@ use SimaLand\DeliveryCalculator\ItemInterface;
 
 class Item implements ItemInterface
 {
+    /**
+     * @var PackingVolumeFactor
+     */
+    public static $packingVolumeFactor;
+
     protected $params = [];
 
     public function __construct(array $params)
@@ -13,13 +18,10 @@ class Item implements ItemInterface
         $this->params = $params;
     }
 
-    public function getID() : int
+    public function param($name, $value)
     {
-        if (array_key_exists('id', $this->params)) {
-            return $this->params['id'];
-        }
-
-        return 0;
+        $this->params[$name] = $value;
+        return $this;
     }
 
     public function isPaidDelivery() : bool
@@ -31,13 +33,13 @@ class Item implements ItemInterface
         return false;
     }
 
-    public function getQty() : int
+    public function isPaidDeliveryLocal() : bool
     {
-        if (array_key_exists('qty', $this->params)) {
-            return $this->params['qty'];
+        if (array_key_exists('is_paid_delivery_local', $this->params)) {
+            return $this->params['is_paid_delivery_local'];
         }
 
-        return 0;
+        return false;
     }
 
     public function getWeight() : float
@@ -72,7 +74,6 @@ class Item implements ItemInterface
         if (array_key_exists('packing_volume_factor', $this->params)) {
             return (float) $this->params['packing_volume_factor'];
         }
-
         return 1.0;
     }
 
@@ -81,7 +82,6 @@ class Item implements ItemInterface
         if (array_key_exists('is_boxed', $this->params)) {
             return $this->params['is_boxed'];
         }
-
         return false;
     }
 
@@ -90,7 +90,6 @@ class Item implements ItemInterface
         if (array_key_exists('box_volume', $this->params)) {
             return $this->params['box_volume'];
         }
-
         return 0.0;
     }
 
@@ -99,7 +98,6 @@ class Item implements ItemInterface
         if (array_key_exists('box_capacity', $this->params)) {
             return $this->params['box_capacity'];
         }
-
         return 0;
     }
 
@@ -108,7 +106,6 @@ class Item implements ItemInterface
         if (array_key_exists('delivery_discount', $this->params)) {
             return $this->params['delivery_discount'];
         }
-
         return 0.0;
     }
 }

@@ -4,69 +4,82 @@ namespace SimaLand\DeliveryCalculator;
 
 /**
  * Interface ItemInterface.
+ *
+ * Для реализации этого интерфейса можно воспользоваться данным возвращаемыми API
+ * https://www.sima-land.ru/api/v3/help/#Товар
+ *
+ *
+ *
  */
 interface ItemInterface
 {
     /**
-     * @return int ID товра (нужен для лога)
-     */
-    public function getID() : int;
-
-    /**
+     * Признак платной доставки
+     *
+     * https://www.sima-land.ru/api/v3/help/#Товар is_paid_delivery
+     *
      * @return bool Является ли доставка товара платной?
      */
     public function isPaidDelivery() : bool;
 
     /**
-     * @return int Количество отправляемых товаров
+     * Признак платной доставки для "локальных" по отношению к складу территорий
+     *
+     * https://www.sima-land.ru/api/v3/help/#Товар is_paid_delivery_ekb
+     *
+     * @return bool Является ли доставка товара платной для "локальных" по отношению к складу территорий
      */
-    public function getQty() : int;
+    public function isPaidDeliveryLocal() : bool;
 
     /**
-     * Вес продукта.
+     * Масса продукта, г.
      *
-     * @return float Масса продукта,
+     * https://www.sima-land.ru/api/v3/help/#Товар weight
+     *
+     * @return float Масса продукта, г.
      */
     public function getWeight() : float;
 
     /**
-     * @return float Объем продукта
+     * Объем продукта, л.
+     *
+     * https://www.sima-land.ru/api/v3/help/#Товар product_volume
+     *
+     * @return float Объем продукта, л.
      */
     public function getProductVolume() : float;
 
     /**
-     * Объем упаковки.
+     * Объем упаковки, л.
      *
-     * @return float
+     * https://www.sima-land.ru/api/v3/help/#Товар package_volume
+     *
+     * @return float Объем упаковки, л.
      */
     public function getPackageVolume() : float;
 
     /**
-     * Возвращает коэффициент упаковки (объема).
+     * Расчетный коэффициент объема упаковки (объема).
      *
-     * Данные для конкретного товара можно получить по API
-     * https://www.sima-land.ru/api/v3/help/#Товар поле packing_volume_factor
-     * если у товара данное поле не задан то принимаем его равным 1
+     * https://www.sima-land.ru/api/v3/help/#Товар packing_volume_factor
      *
-     * @return float Коэффициент упаковки (объема)
+     * @return float Коэффициент объема упаковки
      */
     public function getPackingVolumeFactor() : float;
 
     /**
-     * Возвращает признак вместимости.
-     *
-     * todo: Очень непонятное название, по сути это значи может ли товар быть вложен один в другой?
-     *
+     * Возвращает признак вкладываемости
+     **
      * https://www.sima-land.ru/api/v3/help/#Товар is_boxed
      *
-     * @return bool Признак вместимости
+     * @return bool Признак вкладываемости
      */
     public function isBoxed() : bool;
 
     /**
-     * Объем бокса.
+     * Объем бокса, л
      *
-     * В который пакуется продукт.
+     * https://www.sima-land.ru/api/v3/help/#Товар box_volume
      *
      * @return float
      */

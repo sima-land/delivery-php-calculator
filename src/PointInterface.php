@@ -3,7 +3,7 @@
 namespace SimaLand\DeliveryCalculator;
 
 /**
- * Interface SettlementInterface.
+ * Interface PointInterface.
  *
  * https://www.sima-land.ru/api/v3/help/#Города-доставки
  */

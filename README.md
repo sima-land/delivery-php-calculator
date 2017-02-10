@@ -65,10 +65,10 @@ if (!$calc->addItem($item4, 1000)) {
 
 ## Товар
 
-Все данные для реализации [PointInterface](src/ItemInterface.php) можно получить 
+Все данные для реализации [ItemInterface](src/ItemInterface.php) можно получить 
 по API https://www.sima-land.ru/api/v3/help/#Товар 
 
 ## Данные о коэффициентах упаковки
 
-Данные о коэффициентах упаковки, объект реализующий [PackingVolumeFactorSourceInterface]. 
+Данные о коэффициентах упаковки, объект реализующий [PackingVolumeFactorSourceInterface](src/PackingVolumeFactorSourceInterface.php). 
 Можно воспользоваться готовой реализацией модели [DefaultPackingVolumeFactorSource](src/models/DefaultPackingVolumeFactorSource.php)

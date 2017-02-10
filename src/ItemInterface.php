@@ -5,7 +5,7 @@ namespace SimaLand\DeliveryCalculator;
 /**
  * Interface ItemInterface.
  *
- * Для реализации этого интерфейса можно воспользоваться данным возвращаемыми API
+ * Для реализации этого интерфейса можно воспользоваться данными возвращаемыми API
  * https://www.sima-land.ru/api/v3/help/#Товар
  *
  *

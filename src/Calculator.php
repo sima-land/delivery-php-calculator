@@ -239,7 +239,7 @@ class Calculator implements LoggerAwareInterface
      *
      * @return float Результат расчета
      */
-    public function getResult($precision = 2)
+    public function getResult($precision = 2) : float
     {
         return round($this->result, $precision);
     }
@@ -259,12 +259,22 @@ class Calculator implements LoggerAwareInterface
      *
      * @return $this
      */
-    public function reset()
+    public function reset() : Calculator
     {
         $this->result = 0.0;
         $this->errors = [];
         $this->trace = [];
         return $this;
+    }
+
+    /**
+     * Выводит лог расчета
+     *
+     * @return array
+     */
+    public function getTrace() : array
+    {
+        return $this->trace;
     }
 
     /**

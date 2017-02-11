@@ -77,6 +77,7 @@ class CalculateTest extends TestCase
         $this->assertTrue($calc->addItem($item1, 69), $info);
         $this->assertTrue($calc->addItem($item2, 69), $info);
         $this->assertSame(427.77, $calc->getResult(), $info);
+        $this->assertEquals(count($calc->getTrace()), 6);
 
         $info = 'Boxed, low density item';
         $item = $this->getBoxedItem();

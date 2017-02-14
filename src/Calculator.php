@@ -151,14 +151,15 @@ class Calculator implements LoggerAwareInterface
                     $qty,
                     $item->getPackageVolume(),
                     $item->getBoxVolume(),
-                    $item->getBoxCapacity(),
-                    $this->packingVolumeFactorSource->getFactor($item->getPackageVolume() * $qty)
+                    $item->getBoxCapacity()
                 );
             } else {
                 $calculatedVolume = $this->getRegularVolume(
                     $qty,
                     $item->getProductVolume(),
-                    $item->getPackingVolumeFactor() ?: $this->packingVolumeFactorSource->getFactor($item->getPackageVolume())
+                    $item->getBoxCapacity(),
+                    $item->getBoxVolume(),
+                    $item->getPackingVolumeFactor()
                 );
             }
             $calculatedVolume = $this->getDensityCorrectedVolume($item->getWeight() * $qty, $calculatedVolume);
@@ -182,11 +183,12 @@ class Calculator implements LoggerAwareInterface
         float $productVolume,
         float $packingVolumeFactor
     ) : float {
-        $volume = $productVolume * $packingVolumeFactor;
-        $totalVolume = $volume * $qty;
-        if ($totalVolume > self::ITEM_VOLUME_LIMIT) {
-            $this->error("Total volume $totalVolume exceeds volume limit");
+        $volume = $productVolume * $qty;
+        if ($volume > self::ITEM_VOLUME_LIMIT) {
+            $this->error("Total volume $volume exceeds volume limit");
         }
+        $packingVolumeFactor = $packingVolumeFactor ?: $this->packingVolumeFactorSource->getFactor($volume);
+        $totalVolume = $volume * $packingVolumeFactor;
 
         return $totalVolume;
     }
@@ -198,7 +200,6 @@ class Calculator implements LoggerAwareInterface
      * @param float $packageVolume
      * @param float $boxVolume
      * @param int $boxCapacity
-     * @param float $packingVolumeFactor
      *
      * @return float
      */
@@ -206,14 +207,14 @@ class Calculator implements LoggerAwareInterface
         float $qty,
         float $packageVolume,
         float $boxVolume,
-        int $boxCapacity,
-        float $packingVolumeFactor
+        int $boxCapacity
     ) : float {
         if ($qty > 1 && $boxCapacity > 1) {
             $volume = ($qty - 1) * ($boxVolume - $packageVolume) / ($boxCapacity - 1) + $packageVolume;
         } else {
             $volume = $packageVolume;
         }
+        $packingVolumeFactor = $this->packingVolumeFactorSource->getFactor($volume * $qty);
 
         return $volume * $packingVolumeFactor;
     }

@@ -78,6 +78,11 @@ class Calculator implements LoggerAwareInterface
         $this->reset();
     }
 
+    /**
+     * @param ItemInterface $item
+     * @param int $qty
+     * @return bool
+     */
     public function addItem(ItemInterface $item, int $qty) : bool
     {
         $this->trace(
@@ -105,43 +110,14 @@ class Calculator implements LoggerAwareInterface
             ]
         );
 
-        if ($qty <= 0) {
-            $this->error("Qty must be positive, qty=$qty");
-        };
-        $this->validateItem($item);
-        if (($tmp = $this->point->getDeliveryPricePerUnitVolume()) <= 0) {
-            $this->error("Invalid delivery per unit price $tmp");
-        }
-        if ($this->getErrors()) {
-            return false;
-        }
-
         if (!$item->isPaidDelivery() || $this->isLocal && !$item->isPaidDeliveryLocal()) {
             $this->trace("Free delivery");
 
             return true;
         }
 
-
-        if ($item->isBoxed()) {
-            $calculatedVolume = $this->getBoxedVolume(
-                $qty,
-                $item->getWeight(),
-                $item->getPackageVolume(),
-                $item->getBoxVolume(),
-                $item->getBoxCapacity(),
-                $this->packingVolumeFactorSource->getFactor($item->getPackageVolume())
-            );
-        } else {
-            $calculatedVolume = $this->getRegularVolume(
-                $qty,
-                $item->getWeight(),
-                $item->getProductVolume(),
-                $item->getPackingVolumeFactor() ?: $this->packingVolumeFactorSource->getFactor($item->getPackageVolume())
-            );
-        }
-
-        if ($this->errors) {
+        $calculatedVolume = $this->getCalculatedVolume($item, $qty);
+        if ($this->getErrors()) {
             return false;
         }
 
@@ -154,6 +130,43 @@ class Calculator implements LoggerAwareInterface
         return true;
     }
 
+    /**
+     * @param ItemInterface $item
+     * @param int $qty
+     * @return float
+     */
+    public function getCalculatedVolume(ItemInterface $item, int $qty) : float
+    {
+        $calculatedVolume = 0.0;
+        if ($qty <= 0) {
+            $this->error("Qty must be positive, qty=$qty");
+        }
+        $this->validateItem($item);
+        if (($tmp = $this->point->getDeliveryPricePerUnitVolume()) <= 0) {
+            $this->error("Invalid delivery per unit price $tmp");
+        }
+        if (!$this->getErrors()) {
+            if ($item->isBoxed()) {
+                $calculatedVolume = $this->getBoxedVolume(
+                    $qty,
+                    $item->getPackageVolume(),
+                    $item->getBoxVolume(),
+                    $item->getBoxCapacity(),
+                    $this->packingVolumeFactorSource->getFactor($item->getPackageVolume() * $qty)
+                );
+            } else {
+                $calculatedVolume = $this->getRegularVolume(
+                    $qty,
+                    $item->getProductVolume(),
+                    $item->getPackingVolumeFactor() ?: $this->packingVolumeFactorSource->getFactor($item->getPackageVolume())
+                );
+            }
+            $calculatedVolume = $this->getDensityCorrectedVolume($item->getWeight() * $qty, $calculatedVolume);
+        }
+
+        return $calculatedVolume;
+    }
+
 
     /**
      * Возвращает расчетный объем для обычного товара.
@@ -161,13 +174,11 @@ class Calculator implements LoggerAwareInterface
      * @param float $productVolume
      * @param float $packingVolumeFactor
      * @param int $qty
-     * @param float $weight
      *
      * @return float
      */
     protected function getRegularVolume(
         int $qty,
-        float $weight,
         float $productVolume,
         float $packingVolumeFactor
     ) : float {
@@ -177,13 +188,12 @@ class Calculator implements LoggerAwareInterface
             $this->error("Total volume $totalVolume exceeds volume limit");
         }
 
-        return $this->getDensityCorrectedVolume($weight * $qty, $totalVolume);
+        return $totalVolume;
     }
 
     /**
      * Возвращает расчетный объем для вкладываемого товара.
      *
-     * @param float $weight
      * @param float $qty
      * @param float $packageVolume
      * @param float $boxVolume
@@ -194,7 +204,6 @@ class Calculator implements LoggerAwareInterface
      */
     protected function getBoxedVolume(
         float $qty,
-        float $weight,
         float $packageVolume,
         float $boxVolume,
         int $boxCapacity,
@@ -205,9 +214,8 @@ class Calculator implements LoggerAwareInterface
         } else {
             $volume = $packageVolume;
         }
-        $volume = $volume * $packingVolumeFactor;
 
-        return $this->getDensityCorrectedVolume($weight * $qty, $volume);
+        return $volume * $packingVolumeFactor;
     }
 
     /**

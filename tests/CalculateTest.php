@@ -47,7 +47,7 @@ class CalculateTest extends TestCase
             'package_volume' => 2.049,
             'packing_volume_factor' => 1.1,
             'is_boxed' => true,
-            'box_volume' => 40.986,
+            'box_volume' => 70.986,
             'box_capacity' => 20,
             'delivery_discount' => 0.2,
         ]);
@@ -83,7 +83,7 @@ class CalculateTest extends TestCase
         $item = $this->getBoxedItem();
         $calc->reset();
         $this->assertTrue($calc->addItem($item, 69), $info);
-        $this->assertSame(375.91, $calc->getResult(), $info);
+        $this->assertSame(338.36, $calc->getResult(), $info);
 
         $info = 'No paid delivery';
         $calc->reset();
@@ -98,16 +98,16 @@ class CalculateTest extends TestCase
         $this->assertSame(1706.35, $calc->getResult(), $info);
 
         $info = 'Boxed, very low density item';
-        $item = $this->getBoxedItem()->param('box_volume', 40.986);
+        $item = $this->getBoxedItem()->param('box_volume', 80.986);
         $calc->reset();
         $this->assertTrue($calc->addItem($item, 500), $info);
-        $this->assertSame(2724.0, $calc->getResult(), $info);
+        $this->assertSame(2822.53, $calc->getResult(), $info);
 
         $info = 'Boxed, very low density item with discount';
         $item = $this->getBoxedItem()->param("weight", 250.0)->param("delivery_discount", 0.4);
         $calc->reset();
         $this->assertTrue($calc->addItem($item, 500), $info);
-        $this->assertSame(2043.0, $calc->getResult(), $info);
+        $this->assertSame(1848.99, $calc->getResult(), $info);
 
 
         // Negative scenarios

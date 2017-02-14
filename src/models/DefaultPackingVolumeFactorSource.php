@@ -11,8 +11,8 @@ use SimaLand\DeliveryCalculator\PackingVolumeFactorSourceInterface;
  */
 class DefaultPackingVolumeFactorSource implements PackingVolumeFactorSourceInterface
 {
-    // Факторы по умолчанию
-    const DEFAULT_FACTORS = [
+    // Факторы упаковки по умолчанию
+    const DEFAULT_PACKING_FACTORS = [
         "0.1" => 2.8,
         "0.5" => 2.5,
         1 => 2.45,
@@ -29,16 +29,53 @@ class DefaultPackingVolumeFactorSource implements PackingVolumeFactorSourceInter
         99999999 => 1.1,
     ];
 
+    // Факторы укладки по умолчанию
+    const DEFAULT_PLACEMENT_FACTORS = [
+        "0.1" => 1.2,
+        "0.5" => 1.2,
+        1 => 1.2,
+        "1.5" => 1.2,
+        2 => 1.2,
+        "2.5" => 1.2,
+        3 => 1.2,
+        "3.5" => 1.2,
+        4 => 1.2,
+        5 => 1.2,
+        10 => 1.2,
+        20 => 1.2,
+        50 => 1.2,
+        99999999 => 1.1,
+    ];
+
     /**
-     * Получает фактор соответствующий объему
+     * Получает фактор упаковки соответствующий объему
      *
      * @param float $volume
      * @return float
      */
-    public function getFactor(float $volume) : float
+    public function getPackingFactor(float $volume) : float
     {
         $prevVolume = 0.0;
-        foreach (self::DEFAULT_FACTORS as $key => $factor) {
+        foreach (self::DEFAULT_PACKING_FACTORS as $key => $factor) {
+            if ($volume > $prevVolume && $volume <= $key) {
+                return $factor;
+            }
+            $prevVolume = $key;
+        }
+
+        return 0.0;
+    }
+
+    /**
+     * Получает фактор укладки соответствующий объему
+     *
+     * @param float $volume
+     * @return float
+     */
+    public function getPlacementFactor(float $volume) : float
+    {
+        $prevVolume = 0.0;
+        foreach (self::DEFAULT_PLACEMENT_FACTORS as $key => $factor) {
             if ($volume > $prevVolume && $volume <= $key) {
                 return $factor;
             }

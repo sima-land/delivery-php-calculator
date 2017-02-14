@@ -149,6 +149,7 @@ class Calculator implements LoggerAwareInterface
             if ($item->isBoxed()) {
                 $calculatedVolume = $this->getBoxedVolume(
                     $qty,
+                    $item->getWeight(),
                     $item->getPackageVolume(),
                     $item->getBoxVolume(),
                     $item->getBoxCapacity()
@@ -156,13 +157,13 @@ class Calculator implements LoggerAwareInterface
             } else {
                 $calculatedVolume = $this->getRegularVolume(
                     $qty,
+                    $item->getWeight(),
                     $item->getProductVolume(),
+                    $item->getPackingVolumeFactor(),
                     $item->getBoxCapacity(),
-                    $item->getBoxVolume(),
-                    $item->getPackingVolumeFactor()
+                    $item->getBoxVolume()
                 );
             }
-            $calculatedVolume = $this->getDensityCorrectedVolume($item->getWeight() * $qty, $calculatedVolume);
         }
 
         return $calculatedVolume;
@@ -172,23 +173,56 @@ class Calculator implements LoggerAwareInterface
     /**
      * Возвращает расчетный объем для обычного товара.
      *
+     * @param int $qty
+     * @param float $weight
      * @param float $productVolume
      * @param float $packingVolumeFactor
-     * @param int $qty
+     * @param int $boxCapacity
+     * @param float $boxVolume
      *
      * @return float
      */
     protected function getRegularVolume(
         int $qty,
+        float $weight,
         float $productVolume,
-        float $packingVolumeFactor
+        float $packingVolumeFactor,
+        int $boxCapacity,
+        float $boxVolume
     ) : float {
         $volume = $productVolume * $qty;
         if ($volume > self::ITEM_VOLUME_LIMIT) {
             $this->error("Total volume $volume exceeds volume limit");
         }
-        $packingVolumeFactor = $packingVolumeFactor ?: $this->packingVolumeFactorSource->getFactor($volume);
-        $totalVolume = $volume * $packingVolumeFactor;
+        $packingVolumeFactor = $packingVolumeFactor ?: $this->packingVolumeFactorSource->getPackingFactor($productVolume);
+        $productVolumeWithFactor = $volume * $packingVolumeFactor;
+
+        if ($boxCapacity > 1 && $boxVolume > 0) {
+            $placementFactor = $this->packingVolumeFactorSource->getPlacementFactor($boxVolume);
+            $boxVolumeWithFactor = $placementFactor * $boxVolume;
+
+            /**
+             * Колличество коробок с товаром
+             */
+            $boxCount = floor($qty / $boxCapacity);
+            /**
+             * Колличество оставшихся товаров
+             */
+            $restItemsCount = $qty % $boxCapacity;
+
+            // нельзя рассчитывать при превышении допустимого объема
+            $totalVolume = $boxVolumeWithFactor * $boxCount + $productVolumeWithFactor * $restItemsCount;
+
+            $boxWeight = $weight * $boxCapacity;
+            $boxDensity = $boxWeight / $boxVolumeWithFactor;
+            $restItemsDensity = $weight / $productVolumeWithFactor;
+            // Плотность с учетом бокса
+            $density = ($boxDensity * $boxCount * $boxCapacity + $restItemsDensity * $restItemsCount) / $qty;
+            $totalVolume = $this->getDensityCorrectedVolume($weight * $qty, $totalVolume, $density);
+        } else {
+            $totalVolume = $volume * $packingVolumeFactor;
+            $totalVolume = $this->getDensityCorrectedVolume($weight * $qty, $totalVolume);
+        }
 
         return $totalVolume;
     }
@@ -197,6 +231,7 @@ class Calculator implements LoggerAwareInterface
      * Возвращает расчетный объем для вкладываемого товара.
      *
      * @param float $qty
+     * @param float $weight
      * @param float $packageVolume
      * @param float $boxVolume
      * @param int $boxCapacity
@@ -205,6 +240,7 @@ class Calculator implements LoggerAwareInterface
      */
     protected function getBoxedVolume(
         float $qty,
+        float $weight,
         float $packageVolume,
         float $boxVolume,
         int $boxCapacity
@@ -214,22 +250,25 @@ class Calculator implements LoggerAwareInterface
         } else {
             $volume = $packageVolume;
         }
-        $packingVolumeFactor = $this->packingVolumeFactorSource->getFactor($volume * $qty);
+        $packingVolumeFactor = $this->packingVolumeFactorSource->getPackingFactor($volume);
 
-        return $volume * $packingVolumeFactor;
+        return $this->getDensityCorrectedVolume($weight * $qty, $volume * $packingVolumeFactor);
     }
 
     /**
      * Возвращает расчетный объем скорректированный с учетом плотности.
      *
-     * @param $weight
-     * @param $volume
+     * @param float $weight
+     * @param float $volume
+     * @param float $density
      *
      * @return float
      */
-    protected function getDensityCorrectedVolume($weight, $volume) : float
+    protected function getDensityCorrectedVolume($weight, $volume, $density = 0.0) : float
     {
-        $density = $weight / $volume;
+        if (!$density) {
+            $density = $weight / $volume;
+        }
         if ($density <= self::ITEM_DENSITY_LIMIT) {
             $result = $volume / 1000;
             $this->trace("Low density=$density, volume=$result");

@@ -11,5 +11,11 @@ interface PackingVolumeFactorSourceInterface
      * @param float $volume
      * @return float
      */
-    public function getFactor(float $volume) : float;
+    public function getPackingFactor(float $volume) : float;
+
+    /**
+     * @param float $volume
+     * @return float
+     */
+    public function getPlacementFactor(float $volume) : float;
 }

@@ -2,14 +2,14 @@
 
 namespace SimaLand\DeliveryCalculator\models;
 
-use SimaLand\DeliveryCalculator\PackingVolumeFactorSourceInterface;
+use SimaLand\DeliveryCalculator\VolumeFactorSourceInterface;
 
 /**
  * Компонент для работы с общими коэффициентами упаковки
  *
  * @package SimaLand\DeliveryCalculator
  */
-class DefaultPackingVolumeFactorSource implements PackingVolumeFactorSourceInterface
+class DefaultVolumeFactorSource implements VolumeFactorSourceInterface
 {
     // Факторы упаковки по умолчанию
     const DEFAULT_PACKING_FACTORS = [

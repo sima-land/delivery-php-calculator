@@ -7,7 +7,7 @@ use SimaLand\DeliveryCalculator\Calculator;
 use Monolog\Handler\StreamHandler;
 use Monolog\Logger;
 use pahanini\Monolog\Formatter\CliFormatter;
-use SimaLand\DeliveryCalculator\models\DefaultPackingVolumeFactorSource;
+use SimaLand\DeliveryCalculator\models\DefaultVolumeFactorSource;
 use SimaLand\DeliveryCalculator\models\MoscowPoint;
 
 class CalculateTest extends TestCase
@@ -19,8 +19,8 @@ class CalculateTest extends TestCase
         $streamHandler = new StreamHandler('php://stdout', Logger::DEBUG);
         $streamHandler->setFormatter($formatter);
         $logger->pushHandler($streamHandler);
-        $packingVolumeFactorSource = new DefaultPackingVolumeFactorSource();
-        $calc = new Calculator($packingVolumeFactorSource, $point, $isLocal);
+        $volumeFactorSource = new DefaultVolumeFactorSource();
+        $calc = new Calculator($volumeFactorSource, $point, $isLocal);
         $calc->setLogger($logger);
         return $calc;
     }

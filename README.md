@@ -20,7 +20,7 @@ https://www.sima-land.ru/api/v3/help/#Стоимость-доставки
 
 - Точка доставки - объект, реализующий [PointInterface](src/PointInterface.php)
 - Товар - объект, реализующий [ItemInterface](src/ItemInterface.php)
-- Источник данных о коэффициентах упаковки - объект, реализующий [PackingVolumeFactorSourceInterface](src/PackingVolumeFactorSourceInterface.php)
+- Источник данных о коэффициентах упаковки - объект, реализующий [VolumeFactorSourceInterface](src/VolumeFactorSourceInterface.php)
 
 Для того, чтобы произвести расчёт стоимости доставки товара, необходимо создать объект класса калькулятора
 с указанием точки доставки и коэффициентов упаковки.
@@ -70,5 +70,5 @@ if (!$calc->addItem($item4, 1000)) {
 
 ## Данные о коэффициентах упаковки
 
-Данные о коэффициентах упаковки представляет объект, реализующий [PackingVolumeFactorSourceInterface](src/PackingVolumeFactorSourceInterface.php).
-Можно воспользоваться готовой реализацией модели [DefaultPackingVolumeFactorSource](src/models/DefaultPackingVolumeFactorSource.php)
+Данные о коэффициентах упаковки представляет объект, реализующий [VolumeFactorSourceInterface](src/VolumeFactorSourceInterface.php).
+Можно воспользоваться готовой реализацией модели [DefaultVolumeFactorSource](src/models/DefaultVolumeFactorSource.php)

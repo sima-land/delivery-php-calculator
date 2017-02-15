@@ -3,9 +3,9 @@
 namespace SimaLand\DeliveryCalculator;
 
 /**
- * Interface PackingVolumeFactorSourceInterface.
+ * Interface VolumeFactorSourceInterface.
  */
-interface PackingVolumeFactorSourceInterface
+interface VolumeFactorSourceInterface
 {
     /**
      * @param float $volume

@@ -56,23 +56,23 @@ class Calculator implements LoggerAwareInterface
     private $point;
 
     /**
-     * @var PackingVolumeFactorSourceInterface
+     * @var VolumeFactorSourceInterface
      */
-    private $packingVolumeFactorSource;
+    private $volumeFactorSource;
 
     /**
      * Конструктор калькулятора
      *
-     * @param PackingVolumeFactorSourceInterface $packingVolumeFactorSource
+     * @param VolumeFactorSourceInterface $volumeFactorSource
      * @param PointInterface $point точка доставки
      * @param bool $isLocal признак "локальной" по отношению к складу доставки
      */
     public function __construct(
-        PackingVolumeFactorSourceInterface $packingVolumeFactorSource,
+        VolumeFactorSourceInterface $volumeFactorSource,
         PointInterface $point,
         bool $isLocal
     ) {
-        $this->packingVolumeFactorSource = $packingVolumeFactorSource;
+        $this->volumeFactorSource = $volumeFactorSource;
         $this->point = $point;
         $this->isLocal = $isLocal;
         $this->reset();
@@ -194,11 +194,11 @@ class Calculator implements LoggerAwareInterface
         if ($volume > self::ITEM_VOLUME_LIMIT) {
             $this->error("Total volume $volume exceeds volume limit");
         }
-        $packingVolumeFactor = $packingVolumeFactor ?: $this->packingVolumeFactorSource->getPackingFactor($productVolume);
+        $packingVolumeFactor = $packingVolumeFactor ?: $this->volumeFactorSource->getPackingFactor($productVolume);
         $productVolumeWithFactor = $volume * $packingVolumeFactor;
 
         if ($boxCapacity > 1 && $boxVolume > 0) {
-            $placementFactor = $this->packingVolumeFactorSource->getPlacementFactor($boxVolume);
+            $placementFactor = $this->volumeFactorSource->getPlacementFactor($boxVolume);
             $boxVolumeWithFactor = $placementFactor * $boxVolume;
 
             /**
@@ -250,7 +250,7 @@ class Calculator implements LoggerAwareInterface
         } else {
             $volume = $packageVolume;
         }
-        $packingVolumeFactor = $this->packingVolumeFactorSource->getPackingFactor($volume);
+        $packingVolumeFactor = $this->volumeFactorSource->getPackingFactor($volume);
 
         return $this->getDensityCorrectedVolume($weight * $qty, $volume * $packingVolumeFactor);
     }

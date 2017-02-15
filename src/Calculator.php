@@ -190,37 +190,35 @@ class Calculator implements LoggerAwareInterface
         int $boxCapacity,
         float $boxVolume
     ) : float {
-        $volume = $productVolume * $qty;
-        if ($volume > self::ITEM_VOLUME_LIMIT) {
-            $this->error("Total volume $volume exceeds volume limit");
-        }
         $packingVolumeFactor = $packingVolumeFactor ?: $this->volumeFactorSource->getPackingFactor($productVolume);
-        $productVolumeWithFactor = $volume * $packingVolumeFactor;
+        $this->trace('Packing volume factor ' . $packingVolumeFactor);
+        $productVolumeWithFactor = $productVolume * $packingVolumeFactor;
 
         if ($boxCapacity > 1 && $boxVolume > 0) {
             $placementFactor = $this->volumeFactorSource->getPlacementFactor($boxVolume);
+            $this->trace('Placement volume factor ' . $placementFactor);
             $boxVolumeWithFactor = $placementFactor * $boxVolume;
 
-            /**
-             * Колличество коробок с товаром
-             */
+            // Колличество боксов с товаром
             $boxCount = floor($qty / $boxCapacity);
-            /**
-             * Колличество оставшихся товаров
-             */
+            // Колличество оставшихся товаров
             $restItemsCount = $qty % $boxCapacity;
-
-            // нельзя рассчитывать при превышении допустимого объема
+            // Объем с учетом боксов
             $totalVolume = $boxVolumeWithFactor * $boxCount + $productVolumeWithFactor * $restItemsCount;
-
+            // Вес бокса
             $boxWeight = $weight * $boxCapacity;
-            $boxDensity = $boxWeight / $boxVolumeWithFactor;
-            $restItemsDensity = $weight / $productVolumeWithFactor;
-            // Плотность с учетом бокса
-            $density = ($boxDensity * $boxCount * $boxCapacity + $restItemsDensity * $restItemsCount) / $qty;
+            // Плотность товара с учетом бокса
+            $boxedItemDensity = $boxWeight / $boxVolumeWithFactor;
+            // Плотность товара без бокса
+            $restItemDensity = $weight / $productVolumeWithFactor;
+            // Расчетная плотность всех товаров
+            $density = ($boxedItemDensity * $boxCount * $boxCapacity + $restItemDensity * $restItemsCount) / $qty;
             $totalVolume = $this->getDensityCorrectedVolume($weight * $qty, $totalVolume, $density);
         } else {
-            $totalVolume = $volume * $packingVolumeFactor;
+            $totalVolume = $productVolumeWithFactor * $qty;
+            if ($totalVolume > self::ITEM_VOLUME_LIMIT) {
+                $this->error("Total volume $totalVolume exceeds volume limit");
+            }
             $totalVolume = $this->getDensityCorrectedVolume($weight * $qty, $totalVolume);
         }
 
@@ -251,6 +249,7 @@ class Calculator implements LoggerAwareInterface
             $volume = $packageVolume;
         }
         $packingVolumeFactor = $this->volumeFactorSource->getPackingFactor($volume);
+        $this->trace('Packing volume factor ' . $packingVolumeFactor);
 
         return $this->getDensityCorrectedVolume($weight * $qty, $volume * $packingVolumeFactor);
     }

@@ -35,6 +35,8 @@ class CalculateTest extends TestCase
             'packing_volume_factor' => 1.1,
             'is_boxed' => false,
             'delivery_discount' => 0.2,
+            'box_capacity' => 0,
+            'box_volume' => 0,
         ]);
     }
 
@@ -72,12 +74,26 @@ class CalculateTest extends TestCase
         $this->assertTrue($calc->addItem($item2, 69), $info);
         $this->assertSame(192.30, $calc->getResult(), $info);
 
+        $info = 'Regular, low density item';
+        $item2 = $this->getRegularItem();
+        $calc->reset();
+        $item2->param('weight', 200.00);
+        $this->assertTrue($calc->addItem($item2, 69), $info);
+        $this->assertSame(192.30, $calc->getResult(), $info);
+
+        $info = 'Regular, low density multiple item';
+        $item2 = $this->getRegularItem()->param('box_capacity', 10)->param('box_volume', 20.111);
+        $calc->reset();
+        $item2->param('weight', 200.00);
+        $this->assertTrue($calc->addItem($item2, 69), $info);
+        $this->assertSame(204.12, $calc->getResult(), $info);
+
         $info = 'Multiple items calculate';
         $calc->reset();
         $this->assertTrue($calc->addItem($item1, 69), $info);
         $this->assertTrue($calc->addItem($item2, 69), $info);
-        $this->assertSame(427.77, $calc->getResult(), $info);
-        $this->assertEquals(count($calc->getTrace()), 6);
+        $this->assertSame(439.6, $calc->getResult(), $info);
+        $this->assertEquals(count($calc->getTrace()), 9);
 
         $info = 'Boxed, low density item';
         $item = $this->getBoxedItem();

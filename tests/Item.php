@@ -101,6 +101,14 @@ class Item implements ItemInterface
         return 0;
     }
 
+    public function getCustomBoxCapacity() : int
+    {
+        if (array_key_exists('custom_box_capacity', $this->params)) {
+            return $this->params['custom_box_capacity'];
+        }
+        return 0;
+    }
+
     public function getDeliveryDiscount() : float
     {
         if (array_key_exists('delivery_discount', $this->params)) {

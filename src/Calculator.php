@@ -199,21 +199,21 @@ class Calculator implements LoggerAwareInterface
             $this->trace('Placement volume factor ' . $placementFactor);
             $boxVolumeWithFactor = $placementFactor * $boxVolume;
 
+            // Вес бокса
+            $boxWeight = $weight * $customBoxCapacity;
             // Колличество боксов с товаром
             $boxCount = floor($qty / $customBoxCapacity);
             // Колличество оставшихся товаров
             $restItemsCount = $qty % $customBoxCapacity;
-            // Объем с учетом боксов
-            $totalVolume = $boxVolumeWithFactor * $boxCount + $productVolumeWithFactor * $restItemsCount;
-            // Вес бокса
-            $boxWeight = $weight * $customBoxCapacity;
-            // Плотность товара с учетом бокса
-            $boxedItemDensity = $boxWeight / $boxVolumeWithFactor;
-            // Плотность товара без бокса
-            $restItemDensity = $weight / $productVolumeWithFactor;
-            // Расчетная плотность всех товаров
-            $density = ($boxedItemDensity * $boxCount * $customBoxCapacity + $restItemDensity * $restItemsCount) / $qty;
-            $totalVolume = $this->getDensityCorrectedVolume($weight * $qty, $totalVolume, $density);
+            // Объем боксов
+            $totalBoxVolume = $boxVolumeWithFactor * $boxCount;
+            // Объем оставшихся товаров
+            $totalRestItemsVolume = $productVolumeWithFactor * $restItemsCount;
+            // Объем боксов, скорректированный по плотности
+            $totalBoxVolume = $this->getDensityCorrectedVolume($boxWeight * $boxCount, $totalBoxVolume);
+            // Объем товаров, скорректированный по плотности
+            $totalRestItemsVolume = $this->getDensityCorrectedVolume($weight * $restItemsCount, $totalRestItemsVolume);
+            $totalVolume = $totalBoxVolume + $totalRestItemsVolume;
         } else {
             $totalVolume = $productVolumeWithFactor * $qty;
             if ($totalVolume > self::ITEM_VOLUME_LIMIT) {
@@ -259,15 +259,12 @@ class Calculator implements LoggerAwareInterface
      *
      * @param float $weight
      * @param float $volume
-     * @param float $density
      *
      * @return float
      */
-    protected function getDensityCorrectedVolume($weight, $volume, $density = 0.0) : float
+    protected function getDensityCorrectedVolume($weight, $volume) : float
     {
-        if (!$density) {
-            $density = $weight / $volume;
-        }
+        $density = $weight / $volume;
         if ($density <= self::ITEM_DENSITY_LIMIT) {
             $result = $volume / 1000;
             $this->trace("Low density=$density, volume=$result");

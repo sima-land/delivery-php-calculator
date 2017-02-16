@@ -146,7 +146,7 @@ class Calculator implements LoggerAwareInterface
             $this->error("Invalid delivery per unit price $tmp");
         }
         if (!$this->getErrors()) {
-            if ($item->isBoxed()) {
+            if ($item->isBoxed() && $item->getBoxCapacity() > 1) {
                 $calculatedVolume = $this->getBoxedVolume(
                     $qty,
                     $item->getWeight(),
@@ -160,7 +160,7 @@ class Calculator implements LoggerAwareInterface
                     $item->getWeight(),
                     $item->getProductVolume(),
                     $item->getPackingVolumeFactor(),
-                    $item->getBoxCapacity(),
+                    $item->getCustomBoxCapacity(),
                     $item->getBoxVolume()
                 );
             }
@@ -177,7 +177,7 @@ class Calculator implements LoggerAwareInterface
      * @param float $weight
      * @param float $productVolume
      * @param float $packingVolumeFactor
-     * @param int $boxCapacity
+     * @param int $customBoxCapacity
      * @param float $boxVolume
      *
      * @return float
@@ -187,32 +187,32 @@ class Calculator implements LoggerAwareInterface
         float $weight,
         float $productVolume,
         float $packingVolumeFactor,
-        int $boxCapacity,
+        int $customBoxCapacity,
         float $boxVolume
     ) : float {
         $packingVolumeFactor = $packingVolumeFactor ?: $this->volumeFactorSource->getPackingFactor($productVolume);
         $this->trace('Packing volume factor ' . $packingVolumeFactor);
         $productVolumeWithFactor = $productVolume * $packingVolumeFactor;
 
-        if ($boxCapacity > 1 && $boxVolume > 0) {
+        if ($customBoxCapacity > 1 && $boxVolume > 0) {
             $placementFactor = $this->volumeFactorSource->getPlacementFactor($boxVolume);
             $this->trace('Placement volume factor ' . $placementFactor);
             $boxVolumeWithFactor = $placementFactor * $boxVolume;
 
             // Колличество боксов с товаром
-            $boxCount = floor($qty / $boxCapacity);
+            $boxCount = floor($qty / $customBoxCapacity);
             // Колличество оставшихся товаров
-            $restItemsCount = $qty % $boxCapacity;
+            $restItemsCount = $qty % $customBoxCapacity;
             // Объем с учетом боксов
             $totalVolume = $boxVolumeWithFactor * $boxCount + $productVolumeWithFactor * $restItemsCount;
             // Вес бокса
-            $boxWeight = $weight * $boxCapacity;
+            $boxWeight = $weight * $customBoxCapacity;
             // Плотность товара с учетом бокса
             $boxedItemDensity = $boxWeight / $boxVolumeWithFactor;
             // Плотность товара без бокса
             $restItemDensity = $weight / $productVolumeWithFactor;
             // Расчетная плотность всех товаров
-            $density = ($boxedItemDensity * $boxCount * $boxCapacity + $restItemDensity * $restItemsCount) / $qty;
+            $density = ($boxedItemDensity * $boxCount * $customBoxCapacity + $restItemDensity * $restItemsCount) / $qty;
             $totalVolume = $this->getDensityCorrectedVolume($weight * $qty, $totalVolume, $density);
         } else {
             $totalVolume = $productVolumeWithFactor * $qty;
@@ -367,9 +367,6 @@ class Calculator implements LoggerAwareInterface
             }
             if (($tmp = $item->getBoxVolume()) <= 0) {
                 $this->error("BoxVolume must be positive, box_volume=$tmp");
-            }
-            if (($tmp = $item->getBoxCapacity()) <= 0) {
-                $this->error("BoxCapacity must be positive, box_capacity=$tmp");
             }
         } else {
             if (($tmp = $item->getProductVolume()) <= 0) {

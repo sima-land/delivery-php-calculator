@@ -86,11 +86,18 @@ interface ItemInterface
     public function getBoxVolume() : float;
 
     /**
-     * Кол-во продукта помещающегося в бокс.
+     * Кол-во продукта помещающегося в эталонный бокс.
      *
      * @return int
      */
     public function getBoxCapacity() : int;
+
+    /**
+     * Кол-во продукта помещающегося в актуальный бокс.
+     *
+     * @return int
+     */
+    public function getCustomBoxCapacity() : int;
 
     /**
      * Доля скидки на доставку товара.

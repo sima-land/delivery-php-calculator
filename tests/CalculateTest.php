@@ -55,6 +55,122 @@ class CalculateTest extends TestCase
         ]);
     }
 
+    protected function getControlBigWeightRegularItem() : Item
+    {
+        return new Item([
+            'weight' => 39000,
+            'is_paid_delivery' => true,
+            'product_volume' => 105.82,
+            'package_volume' => 103.204,
+            'packing_volume_factor' => 1.1,
+            'is_boxed' => false,
+            'box_volume' => 105,82,
+            'box_capacity' => 1,
+            'custom_box_capacity' => 1,
+            'delivery_discount' => 0.0,
+        ]);
+    }
+
+    protected function getControlSmallWeightRegularItem() : Item
+    {
+        return new Item([
+            'weight' => 95,
+            'is_paid_delivery' => true,
+            'product_volume' => 0.4533,
+            'package_volume' => 0.321,
+            'packing_volume_factor' => 2.5,
+            'is_boxed' => false,
+            'box_volume' => 16.32,
+            'box_capacity' => 36,
+            'custom_box_capacity' => 36,
+            'delivery_discount' => 0.0,
+        ]);
+    }
+
+    protected function getControlSmallWeightBoxedItem() : Item
+    {
+        return new Item([
+            'weight' => 150,
+            'is_paid_delivery' => true,
+            'product_volume' => 1.664,
+            'package_volume' => 6.048,
+            'packing_volume_factor' => 1.25,
+            'is_boxed' => true,
+            'box_volume' => 14.976,
+            'box_capacity' => 9,
+            'custom_box_capacity' => 18,
+            'delivery_discount' => 0.0,
+        ]);
+    }
+
+    protected function getControlBigWeightBoxedItem() : Item
+    {
+        return new Item([
+            'weight' => 6200,
+            'is_paid_delivery' => true,
+            'product_volume' => 5.5733,
+            'package_volume' => 6.8,
+            'packing_volume_factor' => 1.1,
+            'is_boxed' => true,
+            'box_volume' => 50.16,
+            'box_capacity' => 9,
+            'custom_box_capacity' => 9,
+            'delivery_discount' => 0.0,
+        ]);
+    }
+
+    protected function getControlBigWeightRegularItemInBox() : Item
+    {
+        return new Item([
+            'weight' => 250,
+            'is_paid_delivery' => true,
+            'product_volume' => 0.4737,
+            'package_volume' => 0.32,
+            'packing_volume_factor' => 2.5,
+            'is_boxed' => false,
+            'box_volume' => 14.21,
+            'box_capacity' => 30,
+            'custom_box_capacity' => 30,
+            'delivery_discount' => 0.0,
+        ]);
+    }
+
+    public function testControlCalc()
+    {
+        // Стандартная, не локальная точка
+        $point = new Point(['id' => 1, 'delivery_price_per_unit_volume' => 1500]);
+        $calc = $this->getCalc($point, false);
+
+        $info = 'Regular, high density item. Calculated';
+        $item = $this->getControlBigWeightRegularItem();
+        $this->assertTrue($calc->addItem($item, 1), $info);
+        $this->assertSame(234.0, $calc->getResult(), $info);
+
+        $info = 'Regular, low density item. Calculated';
+        $item = $this->getControlSmallWeightRegularItem();
+        $calc->reset();
+        $this->assertTrue($calc->addItem($item, 36), $info);
+        $this->assertSame(29.38, $calc->getResult(), $info);
+
+        $info = 'Boxed, low density item. Calculated';
+        $item = $this->getControlSmallWeightBoxedItem();
+        $calc->reset();
+        $this->assertTrue($calc->addItem($item, 18), $info);
+        $this->assertSame(46.91, $calc->getResult(), $info);
+
+        $info = 'Boxed, hight density item. Calculated';
+        $item = $this->getControlBigWeightBoxedItem();
+        $calc->reset();
+        $this->assertTrue($calc->addItem($item, 9), $info);
+        $this->assertSame(334.8, $calc->getResult(), $info);
+
+        $info = 'Regular, high density item in box. Calculated';
+        $item = $this->getControlBigWeightRegularItemInBox();
+        $calc->reset();
+        $this->assertTrue($calc->addItem($item, 30), $info);
+        $this->assertSame(45.0, $calc->getResult(), $info);
+    }
+
     public function testCalc()
     {
         // Стандартная, не локальная точка

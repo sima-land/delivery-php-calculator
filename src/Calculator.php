@@ -199,20 +199,29 @@ class Calculator implements LoggerAwareInterface
             $this->trace('Placement volume factor ' . $placementFactor);
             $boxVolumeWithFactor = $placementFactor * $boxVolume;
 
-            // Вес бокса
-            $boxWeight = $weight * $customBoxCapacity;
-            // Колличество боксов с товаром
-            $boxCount = floor($qty / $customBoxCapacity);
             // Колличество оставшихся товаров
             $restItemsCount = $qty % $customBoxCapacity;
-            // Объем боксов
-            $totalBoxVolume = $boxVolumeWithFactor * $boxCount;
-            // Объем оставшихся товаров
-            $totalRestItemsVolume = $productVolumeWithFactor * $restItemsCount;
-            // Объем боксов, скорректированный по плотности
-            $totalBoxVolume = $this->getDensityCorrectedVolume($boxWeight * $boxCount, $totalBoxVolume);
-            // Объем товаров, скорректированный по плотности
-            $totalRestItemsVolume = $this->getDensityCorrectedVolume($weight * $restItemsCount, $totalRestItemsVolume);
+            $totalRestItemsVolume = 0;
+            if ($restItemsCount > 0) {
+                // Объем оставшихся товаров
+                $totalRestItemsVolume = $productVolumeWithFactor * $restItemsCount;
+                // Объем товаров, скорректированный по плотности
+                $totalRestItemsVolume = $this->getDensityCorrectedVolume(
+                    $weight * $restItemsCount,
+                    $totalRestItemsVolume
+                );
+            }
+            // Колличество боксов с товаром
+            $boxCount = floor($qty / $customBoxCapacity);
+            $totalBoxVolume = 0;
+            if ($boxCount > 0) {
+                // Вес бокса
+                $boxWeight = $weight * $customBoxCapacity;
+                // Объем боксов
+                $totalBoxVolume = $boxVolumeWithFactor * $boxCount;
+                // Объем боксов, скорректированный по плотности
+                $totalBoxVolume = $this->getDensityCorrectedVolume($boxWeight * $boxCount, $totalBoxVolume);
+            }
             $totalVolume = $totalBoxVolume + $totalRestItemsVolume;
         } else {
             $totalVolume = $productVolumeWithFactor * $qty;

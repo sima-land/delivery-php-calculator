@@ -147,7 +147,7 @@ class Calculator implements LoggerAwareInterface
         }
         if (!$this->getErrors()) {
             $boxVolume = $item->getBoxVolume();
-            $packageVolume= $item->getPackageVolume();
+            $packageVolume = $item->getPackageVolume();
             $volumeDelta = $boxVolume - $packageVolume;
             if ($item->isBoxed() && $item->getBoxCapacity() > 1 && $volumeDelta > 0) {
                 $calculatedVolume = $this->getBoxedVolume(
@@ -164,7 +164,7 @@ class Calculator implements LoggerAwareInterface
                     $item->getProductVolume(),
                     $item->getPackingVolumeFactor(),
                     $item->getCustomBoxCapacity(),
-                    $item->getBoxVolume(),
+                    $boxVolume,
                     $volumeDelta
                 );
             }

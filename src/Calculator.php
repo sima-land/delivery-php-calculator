@@ -146,12 +146,15 @@ class Calculator implements LoggerAwareInterface
             $this->error("Invalid delivery per unit price $tmp");
         }
         if (!$this->getErrors()) {
-            if ($item->isBoxed() && $item->getBoxCapacity() > 1) {
+            $boxVolume = $item->getBoxVolume();
+            $packageVolume = $item->getPackageVolume();
+            $volumeDelta = $boxVolume - $packageVolume;
+            if ($item->isBoxed() && $item->getBoxCapacity() > 1 && $volumeDelta > 0) {
                 $calculatedVolume = $this->getBoxedVolume(
                     $qty,
                     $item->getWeight(),
-                    $item->getPackageVolume(),
-                    $item->getBoxVolume(),
+                    $packageVolume,
+                    $boxVolume,
                     $item->getBoxCapacity()
                 );
             } else {
@@ -161,7 +164,8 @@ class Calculator implements LoggerAwareInterface
                     $item->getProductVolume(),
                     $item->getPackingVolumeFactor(),
                     $item->getCustomBoxCapacity(),
-                    $item->getBoxVolume()
+                    $boxVolume,
+                    $volumeDelta
                 );
             }
         }
@@ -179,6 +183,7 @@ class Calculator implements LoggerAwareInterface
      * @param float $packingVolumeFactor
      * @param int $customBoxCapacity
      * @param float $boxVolume
+     * @param float $volumeDelta
      *
      * @return float
      */
@@ -188,13 +193,14 @@ class Calculator implements LoggerAwareInterface
         float $productVolume,
         float $packingVolumeFactor,
         int $customBoxCapacity,
-        float $boxVolume
+        float $boxVolume,
+        float $volumeDelta
     ) : float {
         $packingVolumeFactor = $packingVolumeFactor ?: $this->volumeFactorSource->getPackingFactor($productVolume);
         $this->trace('Packing volume factor ' . $packingVolumeFactor);
         $productVolumeWithFactor = $productVolume * $packingVolumeFactor;
 
-        if ($customBoxCapacity > 1 && $boxVolume > 0) {
+        if ($customBoxCapacity > 1 && $boxVolume > 0 && $volumeDelta > 0) {
             $placementFactor = $this->volumeFactorSource->getPlacementFactor($boxVolume);
             $this->trace('Placement volume factor ' . $placementFactor);
             $boxVolumeWithFactor = $placementFactor * $boxVolume;

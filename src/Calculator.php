@@ -279,13 +279,17 @@ class Calculator implements LoggerAwareInterface
      */
     protected function getDensityCorrectedVolume($weight, $volume) : float
     {
-        $density = $weight / $volume;
-        if ($density <= self::ITEM_DENSITY_LIMIT) {
-            $result = $volume / 1000;
-            $this->trace("Low density=$density, volume=$result");
+        if ($volume) {
+            $density = $weight / $volume;
+            if ($density <= self::ITEM_DENSITY_LIMIT) {
+                $result = $volume / 1000;
+                $this->trace("Low density=$density, volume=$result");
+            } else {
+                $result = $weight / (self::ITEM_DENSITY_LIMIT * 1000);
+                $this->trace("High density=$density, volume=$result");
+            }
         } else {
-            $result = $weight / (self::ITEM_DENSITY_LIMIT * 1000);
-            $this->trace("High density=$density, volume=$result");
+            $this->error('Zero volume');
         }
 
         return $result;

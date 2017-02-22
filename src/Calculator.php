@@ -279,6 +279,7 @@ class Calculator implements LoggerAwareInterface
      */
     protected function getDensityCorrectedVolume($weight, $volume) : float
     {
+        $result = 0.0;
         if ($volume) {
             $density = $weight / $volume;
             if ($density <= self::ITEM_DENSITY_LIMIT) {

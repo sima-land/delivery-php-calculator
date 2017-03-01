@@ -158,6 +158,7 @@ class Calculator implements LoggerAwareInterface
                     $item->getBoxCapacity()
                 );
             } else {
+                $isCheckVolumeDeltaNeeded = !$item->isBoxed() || $volumeDelta > 0;
                 $calculatedVolume = $this->getRegularVolume(
                     $qty,
                     $item->getWeight(),
@@ -165,7 +166,7 @@ class Calculator implements LoggerAwareInterface
                     $item->getPackingVolumeFactor(),
                     $item->getCustomBoxCapacity(),
                     $boxVolume,
-                    $volumeDelta
+                    $isCheckVolumeDeltaNeeded
                 );
             }
         }
@@ -183,7 +184,7 @@ class Calculator implements LoggerAwareInterface
      * @param float $packingVolumeFactor
      * @param int $customBoxCapacity
      * @param float $boxVolume
-     * @param float $volumeDelta
+     * @param bool $isCheckVolumeDeltaNeeded
      *
      * @return float
      */
@@ -194,13 +195,13 @@ class Calculator implements LoggerAwareInterface
         float $packingVolumeFactor,
         int $customBoxCapacity,
         float $boxVolume,
-        float $volumeDelta
+        bool $isCheckVolumeDeltaNeeded
     ) : float {
         $packingVolumeFactor = $packingVolumeFactor ?: $this->volumeFactorSource->getPackingFactor($productVolume);
         $this->trace('Packing volume factor ' . $packingVolumeFactor);
         $productVolumeWithFactor = $productVolume * $packingVolumeFactor;
 
-        if ($customBoxCapacity > 1 && $boxVolume > 0 && $volumeDelta > 0) {
+        if ($customBoxCapacity > 1 && $boxVolume > 0 && $isCheckVolumeDeltaNeeded) {
             $placementFactor = $this->volumeFactorSource->getPlacementFactor($boxVolume);
             $this->trace('Placement volume factor ' . $placementFactor);
             $boxVolumeWithFactor = $placementFactor * $boxVolume;

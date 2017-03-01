@@ -190,12 +190,19 @@ class CalculateTest extends TestCase
         $this->assertTrue($calc->addItem($item2, 69), $info);
         $this->assertSame(192.30, $calc->getResult(), $info);
 
-        $info = 'Regular, low density item';
-        $item2 = $this->getRegularItem();
+        $info = 'Regular, low density item (not check on volume delta)';
+        $item2 = $this->getRegularItem()->param('package_volume', 16.048)->param('box_volume', 7.111);
         $calc->reset();
         $item2->param('weight', 200.00);
         $this->assertTrue($calc->addItem($item2, 69), $info);
         $this->assertSame(192.30, $calc->getResult(), $info);
+
+        $info = 'Regular, low density multiple item';
+        $item2 = $this->getRegularItem()->param('custom_box_capacity', 10)->param('box_volume', 20.111);
+        $calc->reset();
+        $item2->param('weight', 200.00);
+        $this->assertTrue($calc->addItem($item2, 69), $info);
+        $this->assertSame(204.12, $calc->getResult(), $info);
 
         $info = 'Regular, low density multiple item';
         $item2 = $this->getRegularItem()->param('custom_box_capacity', 10)->param('box_volume', 20.111);

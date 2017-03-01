@@ -204,13 +204,6 @@ class CalculateTest extends TestCase
         $this->assertTrue($calc->addItem($item2, 69), $info);
         $this->assertSame(204.12, $calc->getResult(), $info);
 
-        $info = 'Regular, low density multiple item';
-        $item2 = $this->getRegularItem()->param('custom_box_capacity', 10)->param('box_volume', 20.111);
-        $calc->reset();
-        $item2->param('weight', 200.00);
-        $this->assertTrue($calc->addItem($item2, 69), $info);
-        $this->assertSame(204.12, $calc->getResult(), $info);
-
         $info = 'Multiple items calculate';
         $calc->reset();
         $this->assertTrue($calc->addItem($item1, 69), $info);

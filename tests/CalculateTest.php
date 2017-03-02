@@ -253,6 +253,12 @@ class CalculateTest extends TestCase
 
 
         // Negative scenarios
+        $info = 'To big delivery discount';
+        $item = $this->getBoxedItem()->param('delivery_discount', 10);
+        $calc->reset();
+        $this->assertFalse($calc->addItem($item, 500), $info);
+        $this->assertSame(['Delivery discount must be between 0 and 1, delivery discount=10'], $calc->getErrors(), $info);
+
         $info = 'Zero volume';
         $item = $this->getBoxedItem()->param('box_volume', 800000000.986);
         $calc->reset();

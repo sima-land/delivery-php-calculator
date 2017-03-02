@@ -378,6 +378,10 @@ class Calculator implements LoggerAwareInterface
         if (($tmp = $item->getWeight()) <= 0) {
             $this->error("Weight must be positive, weight=$tmp");
         }
+        $deliveryDiscount = $item->getDeliveryDiscount();
+        if (($tmp = $deliveryDiscount) < 0 || $deliveryDiscount > 1) {
+            $this->error("Delivery discount must be between 0 and 1, delivery discount=$tmp");
+        }
         if ($item->isBoxed()) {
             if (($tmp = $item->getPackageVolume()) <= 0) {
                 $this->error("PackageVolume must be positive, package_volume=$tmp");

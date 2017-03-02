@@ -20,4 +20,12 @@ class Point implements PointInterface
         }
         return 0.0;
     }
+
+    public function hasNoDiscount() : bool
+    {
+        if (array_key_exists('is_paid_delivery', $this->params)) {
+            return $this->params['is_paid_delivery'];
+        }
+        return false;
+    }
 }

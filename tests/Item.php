@@ -3,11 +3,12 @@
 namespace SimaLand\DeliveryCalculator\tests;
 
 use SimaLand\DeliveryCalculator\ItemInterface;
+use SimaLand\DeliveryCalculator\VolumeFactorSourceInterface;
 
 class Item implements ItemInterface
 {
     /**
-     * @var PackingVolumeFactor
+     * @var VolumeFactorSourceInterface
      */
     public static $packingVolumeFactor;
 
@@ -87,10 +88,15 @@ class Item implements ItemInterface
 
     public function getBoxVolume() : float
     {
-        if (array_key_exists('box_volume', $this->params)) {
-            return $this->params['box_volume'];
+        $result = 0.0;
+        if ($this->isBoxed()) {
+            if (array_key_exists('box_volume', $this->params)) {
+                $result = $this->params['box_volume'];
+            }
+        } else {
+            $result = $this->getProductVolume() * $this->getCustomBoxCapacity();
         }
-        return 0.0;
+        return $result;
     }
 
     public function getBoxCapacity() : int

@@ -2,7 +2,6 @@
 
 namespace SimaLand\DeliveryCalculator\tests\models;
 
-
 use SimaLand\DeliveryCalculator\models\MoscowPointAbstract;
 
 class MoscowPoint extends MoscowPointAbstract

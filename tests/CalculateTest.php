@@ -150,7 +150,7 @@ class CalculateTest extends TestCase
         $item = $this->getControlSmallWeightRegularItem();
         $calc->reset();
         $this->assertTrue($calc->addItem($item, 36), $info);
-        $this->assertSame(29.38, $calc->getResult(), $info);
+        $this->assertSame(29.37, $calc->getResult(), $info);
 
         $info = 'Boxed, low density item. Calculated';
         $item = $this->getControlSmallWeightBoxedItem();
@@ -202,13 +202,13 @@ class CalculateTest extends TestCase
         $calc->reset();
         $item2->param('weight', 200.00);
         $this->assertTrue($calc->addItem($item2, 69), $info);
-        $this->assertSame(204.12, $calc->getResult(), $info);
+        $this->assertSame(207.5, $calc->getResult(), $info);
 
         $info = 'Multiple items calculate';
         $calc->reset();
         $this->assertTrue($calc->addItem($item1, 69), $info);
         $this->assertTrue($calc->addItem($item2, 69), $info);
-        $this->assertSame(439.6, $calc->getResult(), $info);
+        $this->assertSame(442.98, $calc->getResult(), $info);
         $this->assertEquals(count($calc->getTrace()), 10);
 
         $info = 'Boxed, low density item';

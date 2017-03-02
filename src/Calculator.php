@@ -121,7 +121,7 @@ class Calculator implements LoggerAwareInterface
             return false;
         }
 
-        $deliveryDiscount = $this->point->hasNoDiscount() ? 1 : 1 - $item->getDeliveryDiscount();
+        $deliveryDiscount = $this->point->hasDiscount() ? 1 - $item->getDeliveryDiscount() : 1;
         $result = $calculatedVolume * $this->point->getDeliveryPricePerUnitVolume() * $deliveryDiscount;
         $this->result += $result;
         $this->trace("paid delivery=$result, overall={$this->result}");

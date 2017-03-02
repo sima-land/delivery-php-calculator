@@ -19,7 +19,7 @@ interface PointInterface
      *
      * https://www.sima-land.ru/api/v3/help/#Города-доставки is_paid_delivery
      *
-     * @return bool Не учитывать скидку при доставке в этот в этот город?
+     * @return bool Учитывать ли скидку при доставке в этот в этот город?
      */
-    public function hasNoDiscount() : bool;
+    public function hasDiscount() : bool;
 }

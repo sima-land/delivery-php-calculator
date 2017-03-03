@@ -13,11 +13,11 @@ class MoscowPoint extends MoscowPointAbstract
         $this->params = $params;
     }
 
-    public function hasDiscount() : bool
+    public function isPaidDelivery() : bool
     {
         if (array_key_exists('is_paid_delivery', $this->params)) {
-            return !$this->params['is_paid_delivery'];
+            return $this->params['is_paid_delivery'];
         }
-        return true;
+        return false;
     }
 }

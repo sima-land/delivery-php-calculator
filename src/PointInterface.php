@@ -15,11 +15,11 @@ interface PointInterface
     public function getDeliveryPricePerUnitVolume() : float;
 
     /**
-     * Признак скидки
+     * Признак платной доставки
      *
      * https://www.sima-land.ru/api/v3/help/#Города-доставки is_paid_delivery
      *
-     * @return bool Учитывать ли скидку при доставке в этот в этот город?
+     * @return bool Платная ли доставка в этот город?
      */
-    public function hasDiscount() : bool;
+    public function isPaidDelivery() : bool;
 }

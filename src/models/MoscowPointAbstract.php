@@ -9,7 +9,7 @@ use SimaLand\DeliveryCalculator\PointInterface;
  *
  * Реализует PointInterface
  */
-class MoscowPoint implements PointInterface
+abstract class MoscowPointAbstract implements PointInterface
 {
     /**
      * @return float Цена доставки до точки выгрузки в Москве

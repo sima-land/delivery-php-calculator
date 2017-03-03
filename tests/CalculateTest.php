@@ -8,7 +8,7 @@ use Monolog\Handler\StreamHandler;
 use Monolog\Logger;
 use pahanini\Monolog\Formatter\CliFormatter;
 use SimaLand\DeliveryCalculator\models\DefaultVolumeFactorSource;
-use SimaLand\DeliveryCalculator\models\MoscowPoint;
+use SimaLand\DeliveryCalculator\tests\models\MoscowPoint;
 
 class CalculateTest extends TestCase
 {
@@ -241,8 +241,30 @@ class CalculateTest extends TestCase
         $this->assertTrue($calc->addItem($item, 500), $info);
         $this->assertSame(1848.99, $calc->getResult(), $info);
 
+        $info = 'Boxed, very low density item with discount, but with city which not use this discount';
+        $settlementWithoutDiscount = new Point([
+            'delivery_price_per_unit_volume' => 1545.61,
+            'is_paid_delivery' => true
+        ]);
+        $calcWithoutDiscount = $this->getCalc($settlementWithoutDiscount, false);
+        $item = $this->getBoxedItem()->param("weight", 250.0)->param("delivery_discount", 0.4);
+        $this->assertTrue($calcWithoutDiscount->addItem($item, 500), $info);
+        $this->assertSame(3081.65, $calcWithoutDiscount->getResult(), $info);
+
 
         // Negative scenarios
+        $info = 'To big delivery discount';
+        $item = $this->getBoxedItem()->param('delivery_discount', 10);
+        $calc->reset();
+        $this->assertFalse($calc->addItem($item, 500), $info);
+        $this->assertSame(['Delivery discount must be between 0 and 1, delivery discount=10'], $calc->getErrors(), $info);
+
+        $info = 'Zero volume';
+        $item = $this->getBoxedItem()->param('box_volume', 800000000.986);
+        $calc->reset();
+        $this->assertFalse($calc->addItem($item, 500), $info);
+        $this->assertSame(['Zero volume'], $calc->getErrors(), $info);
+
         $info = 'Settlement does not have delivery price per unit volume';
         $invalidPoint = new Point(['id' => 1, 'delivery_price_per_unit_volume' => 0]);
         $calc1= $this->getCalc($invalidPoint);
@@ -271,11 +293,18 @@ class CalculateTest extends TestCase
         $this->assertFalse($calc->addItem($item, 1), $info);
 
         $info = 'Regular, low density item for Moscow point';
-        $settlementMoscow = new MoscowPoint();
+        $settlementMoscow = new MoscowPoint([]);
         $item = $this->getRegularItem();
         $calc = $this->getCalc($settlementMoscow);
         $this->assertTrue($calc->addItem($item, 69), $info);
         $this->assertSame(162.83, $calc->getResult(), $info);
+
+        $info = 'Regular, low density item for Moscow point without discount';
+        $settlementMoscow = new MoscowPoint(['is_paid_delivery' => true]);
+        $item = $this->getRegularItem();
+        $calc = $this->getCalc($settlementMoscow);
+        $this->assertTrue($calc->addItem($item, 69), $info);
+        $this->assertSame(203.53, $calc->getResult(), $info);
 
         $info = 'Regular, low density item for local point. Not calculated';
         $settlementLocal = new Point([

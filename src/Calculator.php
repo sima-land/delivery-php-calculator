@@ -110,7 +110,7 @@ class Calculator implements LoggerAwareInterface
             ]
         );
 
-        if (!$item->isPaidDelivery() || $this->isLocal && !$item->isPaidDeliveryLocal()) {
+        if (!$this->point->isPaidDelivery() && (!$item->isPaidDelivery() || $this->isLocal && !$item->isPaidDeliveryLocal())) {
             $this->trace("Free delivery");
 
             return true;
@@ -121,7 +121,7 @@ class Calculator implements LoggerAwareInterface
             return false;
         }
 
-        $deliveryDiscount = $this->point->hasDiscount() ? 1 - $item->getDeliveryDiscount() : 1;
+        $deliveryDiscount = $this->point->isPaidDelivery() ? 1 : 1 - $item->getDeliveryDiscount();
         $result = $calculatedVolume * $this->point->getDeliveryPricePerUnitVolume() * $deliveryDiscount;
         $this->result += $result;
         $this->trace("paid delivery=$result, overall={$this->result}");

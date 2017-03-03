@@ -251,6 +251,14 @@ class CalculateTest extends TestCase
         $this->assertTrue($calcWithoutDiscount->addItem($item, 500), $info);
         $this->assertSame(3081.65, $calcWithoutDiscount->getResult(), $info);
 
+        $info = 'Mandatory paid delivery to city';
+        $calcWithoutDiscount = $this->getCalc($settlementWithoutDiscount, false);
+        $item = $this->getBoxedItem()
+            ->param("weight", 250.0)
+            ->param("delivery_discount", 0.4)
+            ->param('is_paid_delivery', false);
+        $this->assertTrue($calcWithoutDiscount->addItem($item, 500), $info);
+        $this->assertSame(3081.65, $calcWithoutDiscount->getResult(), $info);
 
         // Negative scenarios
         $info = 'To big delivery discount';

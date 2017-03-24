@@ -284,20 +284,29 @@ class CalculateTest extends TestCase
         $item = $this->getRegularItem();
         $this->assertFalse($calc->addItem($item, 20000), $info);
 
+        $info = 'Volume with costom box capacity out of limits';
+        $calc->reset();
+        $item = $this->getRegularItem()->param('custom_box_capacity', 10)->param('box_volume', 20.49);
+        $this->assertFalse($calc->addItem($item, 20000), $info);
+
         $info = 'Zero qty';
+        $calc->reset();
         $item = $this->getRegularItem();
         $this->assertFalse($calc->addItem($item, 0), $info);
 
         $info = 'Zero weight';
+        $calc->reset();
         $item = $this->getRegularItem()->param("weight", 0);
         $this->assertFalse($calc->addItem($item, 1), $info);
 
         $info = 'Zero box capacity';
+        $calc->reset();
         $this->getBoxedItem()->param("box_capacity", 0);
         $this->assertFalse($calc->addItem($item, 1), $info);
 
         $info = 'Negative product volume';
-        $item = $this->getBoxedItem()->param("product_volume", -1);
+        $calc->reset();
+        $item = $this->getRegularItem()->param("product_volume", -1);
         $this->assertFalse($calc->addItem($item, 1), $info);
 
         $info = 'Regular, low density item for Moscow point';

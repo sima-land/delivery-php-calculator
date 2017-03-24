@@ -208,25 +208,31 @@ class Calculator implements LoggerAwareInterface
             // Колличество оставшихся товаров
             $restItemsCount = $qty % $customBoxCapacity;
             $totalRestItemsVolume = 0;
+            $totalRestItemsVolumeNotCorrected = 0;
             if ($restItemsCount > 0) {
-                // Объем оставшихся товаров
-                $totalRestItemsVolume = $productVolumeWithFactor * $restItemsCount;
+                // Объем оставшихся товаров, нескорректированный по плотности
+                $totalRestItemsVolumeNotCorrected = $productVolumeWithFactor * $restItemsCount;
                 // Объем товаров, скорректированный по плотности
                 $totalRestItemsVolume = $this->getDensityCorrectedVolume(
                     $weight * $restItemsCount,
-                    $totalRestItemsVolume
+                    $totalRestItemsVolumeNotCorrected
                 );
             }
             // Колличество боксов с товаром
             $boxCount = floor($qty / $customBoxCapacity);
             $totalBoxVolume = 0;
+            $totalBoxVolumeNotCorrected = 0;
             if ($boxCount > 0) {
                 // Вес бокса
                 $boxWeight = $weight * $customBoxCapacity;
-                // Объем боксов
-                $totalBoxVolume = $boxVolumeWithFactor * $boxCount;
+                // Объем боксов, нескорректированный по плотности
+                $totalBoxVolumeNotCorrected = $boxVolumeWithFactor * $boxCount;
                 // Объем боксов, скорректированный по плотности
-                $totalBoxVolume = $this->getDensityCorrectedVolume($boxWeight * $boxCount, $totalBoxVolume);
+                $totalBoxVolume = $this->getDensityCorrectedVolume($boxWeight * $boxCount, $totalBoxVolumeNotCorrected);
+            }
+            $totalVolumeNotCorrected = $totalRestItemsVolumeNotCorrected + $totalBoxVolumeNotCorrected;
+            if ($totalVolumeNotCorrected > self::ITEM_VOLUME_LIMIT) {
+                $this->error("Total volume $totalVolumeNotCorrected exceeds volume limit");
             }
             $totalVolume = $totalBoxVolume + $totalRestItemsVolume;
         } else {

@@ -210,7 +210,7 @@ class Calculator implements LoggerAwareInterface
             $totalRestItemsVolume = 0;
             $totalRestItemsVolumeNotCorrected = 0;
             if ($restItemsCount > 0) {
-                // Объем оставшихся товаров, не скорректированный по плотности
+                // Объем оставшихся товаров, нескорректированный по плотности
                 $totalRestItemsVolumeNotCorrected = $productVolumeWithFactor * $restItemsCount;
                 // Объем товаров, скорректированный по плотности
                 $totalRestItemsVolume = $this->getDensityCorrectedVolume(
@@ -225,7 +225,7 @@ class Calculator implements LoggerAwareInterface
             if ($boxCount > 0) {
                 // Вес бокса
                 $boxWeight = $weight * $customBoxCapacity;
-                // Объем боксов, не скорректированный по плотности
+                // Объем боксов, нескорректированный по плотности
                 $totalBoxVolumeNotCorrected = $boxVolumeWithFactor * $boxCount;
                 // Объем боксов, скорректированный по плотности
                 $totalBoxVolume = $this->getDensityCorrectedVolume($boxWeight * $boxCount, $totalBoxVolumeNotCorrected);

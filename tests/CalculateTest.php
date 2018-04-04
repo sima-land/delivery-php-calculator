@@ -135,7 +135,7 @@ class CalculateTest extends TestCase
         ]);
     }
 
-    public function testControlCalc()
+    public function testControlCalc(): void
     {
         // Стандартная, не локальная точка
         $point = new Point(['id' => 1, 'delivery_price_per_unit_volume' => 1500]);
@@ -171,7 +171,7 @@ class CalculateTest extends TestCase
         $this->assertSame(45.0, $calc->getResult(), $info);
     }
 
-    public function testCalc()
+    public function testCalc(): void
     {
         // Стандартная, не локальная точка
         $point = new Point(['id' => 1, 'delivery_price_per_unit_volume' => 1545.61]);
@@ -336,5 +336,16 @@ class CalculateTest extends TestCase
         $item = $this->getRegularItem()->param("is_paid_delivery_local", true);
         $this->assertTrue($calc->addItem($item, 69), $info);
         $this->assertSame(76.29, $calc->getResult(), $info);
+    }
+
+    /**
+     * Проверяем, что расчет объема происходит независимо от заполнения цены за куб
+     */
+    public function testWithoutPoint(): void
+    {
+        $item = $this->getControlBigWeightRegularItem();
+        $point = new Point([]);
+        $calculator = $this->getCalc($point);
+        $this->assertEquals(0.156, $calculator->getCalculatedVolume($item, 1));
     }
 }

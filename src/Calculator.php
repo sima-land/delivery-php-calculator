@@ -110,6 +110,9 @@ class Calculator implements LoggerAwareInterface
             ]
         );
 
+        if (($tmp = $this->point->getDeliveryPricePerUnitVolume()) <= 0) {
+            $this->error("Invalid delivery per unit price $tmp");
+        }
         if (!$this->point->isPaidDelivery() && (!$item->isPaidDelivery() || $this->isLocal && !$item->isPaidDeliveryLocal())) {
             $this->trace("Free delivery");
 
@@ -141,9 +144,6 @@ class Calculator implements LoggerAwareInterface
             $this->error("Qty must be positive, qty=$qty");
         }
         $this->validateItem($item);
-        if (($tmp = $this->point->getDeliveryPricePerUnitVolume()) <= 0) {
-            $this->error("Invalid delivery per unit price $tmp");
-        }
         if (!$this->getErrors()) {
             $boxVolume = $item->getBoxVolume();
             $packageVolume = $item->getPackageVolume();

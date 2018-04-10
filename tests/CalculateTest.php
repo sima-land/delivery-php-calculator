@@ -337,4 +337,15 @@ class CalculateTest extends TestCase
         $this->assertTrue($calc->addItem($item, 69), $info);
         $this->assertSame(76.29, $calc->getResult(), $info);
     }
+
+    /**
+     * Проверяем, что расчет объема происходит независимо от заполнения цены за куб
+     */
+    public function testWithoutPoint()
+    {
+        $item = $this->getControlBigWeightRegularItem();
+        $point = new Point([]);
+        $calculator = $this->getCalc($point);
+        $this->assertEquals(0.156, $calculator->getCalculatedVolume($item, 1));
+    }
 }
